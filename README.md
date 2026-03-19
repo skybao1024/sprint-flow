@@ -21,7 +21,7 @@ Each sprint gets a sub-agent with clean context and a carefully constructed prom
 ### Step 1: Add marketplace
 
 ```
-/plugin marketplace add skybao2012/sprint-flow
+/plugin marketplace add skybao1024/sprint-flow
 ```
 
 ### Step 2: Install plugin
