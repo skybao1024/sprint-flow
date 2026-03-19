@@ -21,6 +21,8 @@ You are the **orchestrator** of an iterative sprint development workflow. Your j
 
 ## Phase 2: Sprint Execution Loop
 
+**CRITICAL: Execute sprints strictly one at a time, sequentially. Do NOT dispatch multiple sprints in parallel, even if their declared dependencies appear independent. Later sprints may rely on code, types, schemas, or patterns created by earlier sprints. Always wait for Sprint N to fully complete and be validated before starting Sprint N+1.**
+
 For each pending sprint, execute this cycle:
 
 ### Step 2.1: Prepare Sub-Agent Context
@@ -92,11 +94,19 @@ Study these files to understand coding patterns:
 6. If `.sprint/handoff-sprint-{N+1}.md` exists, review and update it.
    If it doesn't exist and more sprints remain, create it.
 
+## Unit Tests
+
+You MUST write unit tests for all code produced in this sprint.
+- Tests are part of the sprint deliverables, not a separate task
+- Run the test command after implementation to verify all tests pass
+- Include test results in the completion report
+
 ## Do NOT
 - Guess requirements — check the PRD
 - Skip reading documents
 - Modify files outside sprint scope unless necessary
 - Leave TODO comments — implement fully
+- Skip writing unit tests — every sprint must include tests for its code
 ```
 
 ### Step 2.3: Dispatch Sub-Agent

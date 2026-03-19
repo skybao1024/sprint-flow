@@ -75,8 +75,9 @@ If more sprints remain:
 ## Step 6: Update Config
 
 Update `.sprint/config.json`:
-- Set `current_sprint` to N+1
-- If all done, set `status` to "completed"
+- Always set `current_sprint` to N+1 (even if N+1 equals total_sprints)
+- If `current_sprint` >= `total_sprints`, set `status` to "completed"
+- Example: for 8 sprints (0-7), after Sprint 7 completes → `current_sprint: 8`, `status: "completed"`
 
 ## Step 7: Output Next Session Prompt
 

@@ -135,6 +135,7 @@ Follow these rules when splitting PRD into sprints:
 - Sprints must have **clear boundaries** — a sprint either fully implements a module or a well-defined subset
 - Dependencies must be **strictly ordered** — no circular dependencies
 - Each sprint should produce **testable, runnable output**
+- **Each sprint MUST include unit tests for the code it produces.** Tests are part of the sprint deliverables, not a separate sprint. Include "unit tests pass" as an acceptance criterion for every sprint.
 - Aim for **5-8 sprints** for a typical MVP, adjust based on complexity
 
 ### 5. Output summary
