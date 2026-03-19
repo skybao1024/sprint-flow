@@ -1,0 +1,21 @@
+{
+  "name": "sprint-flow-marketplace",
+  "owner": {
+    "name": "skybao2012"
+  },
+  "metadata": {
+    "description": "Iterative sprint development workflows for Claude Code",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "sprint-flow",
+      "source": "./plugins/sprint-flow",
+      "description": "Split PRD into sprints, execute each via sub-agent with clean context, auto-generate handoffs and completion reports",
+      "version": "0.1.0",
+      "license": "MIT",
+      "keywords": ["sprint", "workflow", "prd", "iterative", "sub-agent"],
+      "category": "productivity"
+    }
+  ]
+}

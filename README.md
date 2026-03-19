@@ -18,16 +18,16 @@ Each sprint gets a sub-agent with clean context and a carefully constructed prom
 
 ## Installation
 
-### From a marketplace
+### Step 1: Add marketplace
 
 ```
-/plugin install sprint-flow@<marketplace-name>
+/plugin marketplace add skybao2012/sprint-flow
 ```
 
-### From GitHub
+### Step 2: Install plugin
 
 ```
-/plugin install-from-github <your-username>/sprint-flow
+/plugin install sprint-flow@sprint-flow-marketplace
 ```
 
 ## Quick Start
