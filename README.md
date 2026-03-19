@@ -102,6 +102,7 @@ Sub-agents don't browse the codebase proactively. The orchestrator must include:
 - Clear boundaries (full module or well-defined subset)
 - Strictly ordered dependencies
 - Each sprint produces testable output
+- Each sprint includes unit tests for the code it produces
 
 ## Requirements
 
@@ -109,6 +110,11 @@ Sub-agents don't browse the codebase proactively. The orchestrator must include:
 - A PRD document in your project
 
 ## Version
+
+0.1.1
+- Enforce strict sequential sprint execution (no parallel dispatch)
+- Require unit tests as part of each sprint deliverable
+- Fix `current_sprint` indexing to match `total_sprints` on completion
 
 0.1.0 — Initial release
 
