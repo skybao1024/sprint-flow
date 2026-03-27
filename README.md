@@ -111,6 +111,14 @@ Sub-agents don't browse the codebase proactively. The orchestrator must include:
 
 ## Version
 
+0.2.0
+- Add design analysis phase in sprint-init (Think Once, Execute Many)
+- Introduce project type detection and type-specific testing standards
+- Add sprint contracts to define deliverables between sprints
+- Include design decisions and rationale in handoff documents
+- Add self-review checklist for sprint-executor
+- Enhance completion reports with contract compliance verification
+
 0.1.1
 - Enforce strict sequential sprint execution (no parallel dispatch)
 - Require unit tests as part of each sprint deliverable
