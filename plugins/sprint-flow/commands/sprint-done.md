@@ -19,9 +19,11 @@ Finalize the current sprint and prepare handoff for the next one.
 ## Step 2: Gather Completion Data
 
 1. Read `.sprint/handoff-sprint-{N}.md` for what was planned
-2. Run `git diff --stat` or `git log --oneline -20` to see recent changes (if git repo)
-3. Scan for files created/modified during this sprint
-4. Check which acceptance criteria are met
+2. Read `.sprint/design-decisions.md` — check sprint contracts for this sprint (what was expected to be produced)
+3. Run `git diff --stat` or `git log --oneline -20` to see recent changes (if git repo)
+4. Scan for files created/modified during this sprint
+5. Check which acceptance criteria are met
+6. Verify sprint contract compliance — did this sprint produce the deliverables that downstream sprints expect?
 
 ## Step 3: Generate Completion Report
 
@@ -50,6 +52,12 @@ Create `.sprint/sprint-{N}-completion-report.md`:
 - [x] {met criterion}
 - [ ] {unmet — explain why}
 
+## Sprint Contract Compliance
+- **Expected output**: {from design-decisions.md sprint contracts}
+- **Actual output**: {what was actually produced}
+- **Status**: Met / Partially Met / Deviated
+- **Deviations**: {if any, explain what changed and why}
+
 ## Deviations from Plan
 {differences from handoff}
 
@@ -57,7 +65,7 @@ Create `.sprint/sprint-{N}-completion-report.md`:
 {problems and resolutions}
 
 ## Impact on Next Sprint
-{considerations for next sprint}
+{considerations for next sprint, including any sprint contract deviations that affect downstream work}
 ```
 
 ## Step 4: Update Iteration Plan

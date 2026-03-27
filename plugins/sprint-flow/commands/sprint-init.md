@@ -28,7 +28,89 @@ Read the entire PRD document. Identify:
 - Tech stack and constraints
 - Any existing CLAUDE.md conventions
 
-### 3. Create the `.sprint/` directory structure
+### 3. Design Analysis (Think Once, Execute Many)
+
+Before splitting into sprints, perform deep analysis to resolve ambiguities and establish design context. This analysis is done **once** and produces `.sprint/design-decisions.md`, which all sub-agents will consume.
+
+#### 3a. Project Type Detection & Development Standards
+
+Analyze the PRD to detect the project type and record it in `config.json` as `project_type`. Apply **type-specific development standards** based on the detected type:
+
+| Project Type | Testing Requirements |
+|---|---|
+| **Backend** | Mandatory unit tests for all business logic, input validation tests, error handling tests. Must cover: happy path, edge cases, error cases. Test coverage is a hard acceptance criterion. |
+| **Frontend** | Component rendering tests, user interaction tests. Visual/layout testing encouraged but not mandatory. |
+| **CLI** | Command parsing tests, output format tests, error message tests. |
+| **Data Pipeline** | Data transformation tests, schema validation tests, edge case data tests. |
+| **Full-stack** | Backend standards for API layer + frontend standards for UI layer. |
+| **Other** | Determine appropriate testing standards based on project nature and document them. |
+
+If the project type is ambiguous, ask the user to confirm.
+
+#### 3b. Ambiguity Detection
+
+Identify unclear, missing, or conflicting points in the PRD. Categorize into:
+- **Tech decisions**: Unresolved technology choices
+- **Business logic gaps**: Missing rules, edge cases, or workflows
+- **Scope boundaries**: Unclear what's in/out of scope
+
+#### 3c. Layered Questioning
+
+Use `AskUserQuestion` to resolve ambiguities in **batched rounds** (not one-at-a-time):
+
+- **Round 1**: Independent questions (2-4 per batch, multiple choice preferred) — tech stack, deployment targets, scope confirmations
+- **Round 2** (if needed): Follow-up questions that depend on Round 1 answers — e.g., if user chose JWT, ask about token refresh strategy
+- **Round 3** (if needed): Final clarifications
+- **Maximum 3 rounds total** to keep init phase efficient
+
+#### 3d. Design Decisions & Sprint Contracts
+
+Based on PRD analysis and user answers:
+1. Record all design decisions with rationale
+2. Define **sprint contracts** — what each sprint produces that subsequent sprints consume. These are NOT limited to APIs; they describe whatever deliverables connect sprints (components, modules, data structures, config files, schemas, CLI interfaces, etc.)
+
+#### 3e. Generate `.sprint/design-decisions.md`
+
+```markdown
+# Design Decisions — <Project Name>
+
+**Project Type**: <detected type>
+**Created**: <date>
+
+## Development Standards
+
+{type-specific testing and development requirements from Step 3a}
+
+## Resolved Questions
+
+| Question | Answer | Rationale | Decided |
+|----------|--------|-----------|---------|
+| <question> | <answer> | <why> | <date> |
+
+## Design Decisions
+
+### <Decision Title>
+- **Decision**: <what was decided>
+- **Rationale**: <why>
+- **Alternatives considered**: <what else was possible>
+
+## Sprint Contracts
+
+### Sprint 0 → Sprint 1
+- **Sprint 0 produces**: <deliverables — adapt to project type>
+- **Sprint 1 expects**: <what it will consume>
+
+### Sprint 1 → Sprint 2
+...
+
+## Key Constraints
+
+- <constraint from PRD>
+- <constraint from user answers>
+- <constraint from tech stack>
+```
+
+### 4. Create the `.sprint/` directory structure
 
 Create the following files in the project root:
 
@@ -38,6 +120,7 @@ Create the following files in the project root:
   "project_name": "<from PRD>",
   "prd_path": "<relative path to PRD>",
   "tech_stack": "<detected tech stack>",
+  "project_type": "<backend|frontend|cli|data-pipeline|mobile|full-stack|other>",
   "total_sprints": <number>,
   "current_sprint": 0,
   "status": "initialized",
@@ -109,6 +192,15 @@ Before starting, read these documents:
 |----|------|-------------|----------------------|----------|
 | S0-T1 | ... | ... | ... | ... |
 
+## Design Context
+
+{Relevant decisions from `.sprint/design-decisions.md` for this sprint — include design decisions, rationale, and any resolved questions that affect this sprint's implementation.}
+
+## Sprint Contracts
+
+- **Input**: {What this sprint receives from previous sprints — could be modules, schemas, components, config, etc.}
+- **Output**: {What this sprint must produce for downstream sprints to consume}
+
 ## Implementation Guide
 
 ### Existing Patterns to Follow
@@ -118,8 +210,17 @@ Before starting, read these documents:
 - <constraint from PRD>
 - <constraint from CLAUDE.md>
 
+## Test Scenarios
+
+{Explicit list of test scenarios this sprint MUST cover, generated per the development standards for this project type. Do NOT use vague "write unit tests" — list specific scenarios.}
+
+| ID | Scenario | Type | Expected Behavior |
+|----|----------|------|-------------------|
+| S0-TS1 | <scenario> | happy path / edge case / error | <expected> |
+
 ## Acceptance Criteria
 - [ ] <criteria>
+- [ ] All test scenarios above have passing tests
 
 ## After Completion
 1. Update `.sprint/iteration-plan.md` — Mark Sprint 0 as completed
@@ -127,7 +228,7 @@ Before starting, read these documents:
 3. Create `.sprint/handoff-sprint-1.md` if more sprints remain
 ```
 
-### 4. Sprint splitting principles
+### 5. Sprint splitting principles
 
 Follow these rules when splitting PRD into sprints:
 - **Sprint 0** should always be critical bugs/security fixes if any exist, or foundational setup
@@ -135,10 +236,10 @@ Follow these rules when splitting PRD into sprints:
 - Sprints must have **clear boundaries** — a sprint either fully implements a module or a well-defined subset
 - Dependencies must be **strictly ordered** — no circular dependencies
 - Each sprint should produce **testable, runnable output**
-- **Each sprint MUST include unit tests for the code it produces.** Tests are part of the sprint deliverables, not a separate sprint. Include "unit tests pass" as an acceptance criterion for every sprint.
+- **Each sprint MUST include tests per the development standards** defined in `.sprint/design-decisions.md`. Tests are part of the sprint deliverables, not a separate sprint. The handoff's `## Test Scenarios` table lists specific scenarios that must be covered.
 - Aim for **5-8 sprints** for a typical MVP, adjust based on complexity
 
-### 5. Output summary
+### 6. Output summary
 
 After creating all files, output:
 - Total sprints planned

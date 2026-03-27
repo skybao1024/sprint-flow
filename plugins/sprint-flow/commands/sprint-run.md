@@ -30,10 +30,11 @@ For each pending sprint, execute this cycle:
 Before dispatching, gather ALL necessary information:
 
 1. Read `.sprint/handoff-sprint-{N}.md` for detailed instructions
-2. Read the PRD file (path from config.json) — identify sections relevant to this sprint
-3. Read `CLAUDE.md` (if exists) for project conventions
-4. If N > 0, read `.sprint/sprint-{N-1}-completion-report.md` for prior context
-5. Scan the codebase for patterns:
+2. Read `.sprint/design-decisions.md` — extract design context, sprint contracts, and development standards relevant to this sprint
+3. Read the PRD file (path from config.json) — identify sections relevant to this sprint
+4. Read `CLAUDE.md` (if exists) for project conventions
+5. If N > 0, read `.sprint/sprint-{N-1}-completion-report.md` for prior context
+6. Scan the codebase for patterns:
    - Use Glob/Grep to find example files referenced in the handoff
    - Identify 1-2 representative files as pattern references
 
@@ -66,6 +67,19 @@ You MUST read these files IN ORDER before writing any code:
 4. `.sprint/sprint-{N-1}-completion-report.md` — Previous sprint results.
 {endif}
 
+## Design Context
+
+{relevant decisions and rationale from design-decisions.md for this sprint}
+
+## Sprint Contracts
+
+- **Input from previous sprint**: {what this sprint consumes — could be components, modules, data structures, schemas, config, CLI commands, etc.}
+- **Output for next sprint**: {what this sprint must produce that downstream sprints depend on}
+
+## Why This Matters
+
+{1-2 sentences on this sprint's role in the overall product}
+
 ## Pattern References
 
 Study these files to understand coding patterns:
@@ -90,23 +104,34 @@ Study these files to understand coding patterns:
    - All changes made (files created, modified, deleted)
    - Any deviations from plan and why
    - Issues encountered and resolutions
+   - Sprint contract compliance (did you produce the expected output?)
    - Risks or concerns for next sprints
 6. If `.sprint/handoff-sprint-{N+1}.md` exists, review and update it.
    If it doesn't exist and more sprints remain, create it.
 
-## Unit Tests
+## Required Test Scenarios
 
-You MUST write unit tests for all code produced in this sprint.
-- Tests are part of the sprint deliverables, not a separate task
-- Run the test command after implementation to verify all tests pass
-- Include test results in the completion report
+{paste specific test scenarios from handoff's Test Scenarios table}
+- You MUST cover all listed scenarios
+- Additional edge case tests are encouraged
+- Run tests after implementation and include results in completion report
+- **Development standard**: {paste the project-type-specific testing rules from design-decisions.md}
+
+## Self-Review Before Reporting
+
+Before creating your completion report, verify:
+- [ ] All tasks from handoff are implemented (not partially)
+- [ ] Sprint contracts are satisfied (output matches what next sprint expects)
+- [ ] All required test scenarios have passing tests
+- [ ] No TODO/FIXME comments left in code
+- [ ] Code follows patterns from pattern reference files
 
 ## Do NOT
-- Guess requirements — check the PRD
+- Guess requirements — check the PRD and design decisions
 - Skip reading documents
 - Modify files outside sprint scope unless necessary
 - Leave TODO comments — implement fully
-- Skip writing unit tests — every sprint must include tests for its code
+- Skip tests — every listed test scenario must have a passing test
 ```
 
 ### Step 2.3: Dispatch Sub-Agent
@@ -126,9 +151,11 @@ Use `model: "sonnet"` by default. Use "opus" only for complex architectural spri
 After sub-agent returns:
 
 1. Read `.sprint/iteration-plan.md` — verify Sprint N marked completed
-2. Read `.sprint/sprint-{N}-completion-report.md` — verify it exists
-3. Check handoff for Sprint N+1 exists (if more remain)
-4. Spot-check: Glob for files in completion report, read 1-2 key files
+2. Read `.sprint/sprint-{N}-completion-report.md` — verify it exists and includes self-review results
+3. Read `.sprint/design-decisions.md` — verify sprint contracts are satisfied (check that the expected output deliverables exist)
+4. Check handoff for Sprint N+1 exists (if more remain)
+5. Spot-check: Glob for files in completion report, read 1-2 key files
+6. If sprint contracts are broken, update the next sprint's handoff to note the deviation
 
 ### Step 2.5: Handle Failures
 

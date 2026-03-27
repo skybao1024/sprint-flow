@@ -25,6 +25,9 @@ The orchestrator (main agent running `/sprint-run`) must provide:
 - Project name, tech stack, sprint objective
 - Exact file paths to PRD, CLAUDE.md, handoff document
 - Specific PRD sections to focus on
+- **Design decisions** relevant to this sprint (from `.sprint/design-decisions.md`)
+- **Sprint contracts** — what this sprint consumes from prior sprints and what it must produce for subsequent sprints
+- **Required test scenarios** — specific test cases this sprint must cover, per the project type's development standards
 - Pattern reference files from the codebase
 - Complete task list from the handoff
 - All constraints and conventions
@@ -36,3 +39,15 @@ This agent's output quality is directly proportional to the detail in its prompt
 - Paste actual task lists, not "see handoff document"
 - List specific PRD sections (e.g., "Section 5.3, lines 120-180")
 - Provide pattern file paths with explanations of what to copy
+- Include design context and sprint contracts so the agent understands WHY, not just WHAT
+
+## Self-Review Checklist
+
+Before creating the completion report, the agent must verify:
+- [ ] All tasks from handoff are implemented (not partially)
+- [ ] Sprint contracts are satisfied (output matches what next sprint expects)
+- [ ] All required test scenarios have passing tests
+- [ ] No TODO/FIXME comments left in code
+- [ ] Code follows patterns from pattern reference files
+
+Include self-review results in the completion report.
