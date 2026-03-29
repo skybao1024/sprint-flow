@@ -15,6 +15,7 @@ You are setting up an iterative sprint development workflow for this project. Th
 The user may provide a PRD path as argument: `$ARGUMENTS`
 
 If no argument is provided, search for PRD files:
+
 - Look for files matching: `*prd*`, `*PRD*`, `*requirement*`, `*spec*` in `docs/`, `doc/`, root directory
 - If multiple found, ask the user which one to use
 - If none found, ask the user for the path
@@ -22,6 +23,7 @@ If no argument is provided, search for PRD files:
 ### 2. Read and analyze the PRD
 
 Read the entire PRD document. Identify:
+
 - Project name and description
 - Major modules/features (these become sprint candidates)
 - Dependencies between modules
@@ -30,7 +32,13 @@ Read the entire PRD document. Identify:
 
 ### 3. Design Analysis (Think Once, Execute Many)
 
-Before splitting into sprints, perform deep analysis to resolve ambiguities and establish design context. This analysis is done **once** and produces `.sprint/design-decisions.md`, which all sub-agents will consume.
+Before splitting into sprints, perform deep analysis to resolve **project-level ambiguities** and establish design context. This analysis is done **once** and produces `.sprint/design-decisions.md`, which all sub-agents will consume.
+
+**Important boundary**:
+
+- `/sprint-init` resolves **project-level ambiguity** — product scope, tech stack, architecture direction, testing standards, deployment assumptions, and sprint contract design.
+- `/sprint-run` resolves **sprint-level ambiguity** through a clarification gate before execution when a specific sprint still has blocking feature-level questions.
+- Do NOT try to fully resolve every feature detail during init. The goal is to make sprint execution well-scoped, not to replace per-sprint detailed design review.
 
 #### 3a. Project Type Detection & Development Standards
 
@@ -50,6 +58,7 @@ If the project type is ambiguous, ask the user to confirm.
 #### 3b. Ambiguity Detection
 
 Identify unclear, missing, or conflicting points in the PRD. Categorize into:
+
 - **Tech decisions**: Unresolved technology choices
 - **Business logic gaps**: Missing rules, edge cases, or workflows
 - **Scope boundaries**: Unclear what's in/out of scope
@@ -63,11 +72,15 @@ Use `AskUserQuestion` to resolve ambiguities in **batched rounds** (not one-at-a
 - **Round 3** (if needed): Final clarifications
 - **Maximum 3 rounds total** to keep init phase efficient
 
-#### 3d. Design Decisions & Sprint Contracts
+#### 3d. Design Decisions, Sprint Contracts & Escalation Policy
 
 Based on PRD analysis and user answers:
+
 1. Record all design decisions with rationale
 2. Define **sprint contracts** — what each sprint produces that subsequent sprints consume. These are NOT limited to APIs; they describe whatever deliverables connect sprints (components, modules, data structures, config files, schemas, CLI interfaces, etc.)
+3. Define a **clarification escalation policy** for sprint execution:
+   - Escalate only when ambiguity affects business rules, MVP scope boundaries, schema/data invariants, external API contracts, auth/security behavior, or downstream sprint contracts
+   - For non-blocking ambiguities, the sprint executor should choose the most conservative implementation and document assumptions in the completion report
 
 #### 3e. Generate `.sprint/design-decisions.md`
 
@@ -102,6 +115,21 @@ Based on PRD analysis and user answers:
 
 ### Sprint 1 → Sprint 2
 ...
+
+## Clarification Escalation Policy
+
+Escalate to the user during sprint execution only when ambiguity affects:
+- business rules or workflow logic
+- MVP scope boundaries
+- schema or data model invariants
+- external API contracts
+- auth / permission / security behavior
+- downstream sprint contracts
+
+For non-blocking ambiguities:
+- choose the most conservative implementation
+- document assumptions in the sprint completion report
+- avoid interrupting execution
 
 ## Key Constraints
 
@@ -231,6 +259,7 @@ Before starting, read these documents:
 ### 5. Sprint splitting principles
 
 Follow these rules when splitting PRD into sprints:
+
 - **Sprint 0** should always be critical bugs/security fixes if any exist, or foundational setup
 - Each sprint should be completable in **2-4 hours of AI work**
 - Sprints must have **clear boundaries** — a sprint either fully implements a module or a well-defined subset
@@ -242,12 +271,20 @@ Follow these rules when splitting PRD into sprints:
 ### 6. Output summary
 
 After creating all files, output:
+
 - Total sprints planned
 - Brief description of each sprint
-- Command to start: "Run `/sprint-run` to begin executing sprints, or `/sprint-status` to review the plan"
+- Note that project-level ambiguities were resolved here, while sprint-level blockers will be handled by `/sprint-flow:sprint-run` through the clarification gate if needed
+- Command to start: "Run `/sprint-flow:sprint-run` to begin executing sprints, or `/sprint-flow:sprint-status` to review the plan"
 
 ## Important
 
 - Do NOT start executing any sprint tasks. This command only sets up the plan.
-- If the project already has `.sprint/config.json`, warn the user and ask if they want to reinitialize.
+- If the project already has `.sprint/config.json`, do NOT blindly reinitialize. First read the existing `.sprint/config.json` and `.sprint/iteration-plan.md` and branch as follows:
+  - If the existing sprint workflow is **completed** (`status: completed` or all planned sprints are marked completed), tell the user an earlier sprint plan already finished and ask whether to **clean up the old `.sprint/` documents and create a new plan**.
+    - Preferred wording: "An earlier sprint plan is already completed. Should I clean the old `.sprint/` documents and initialize a new plan?"
+  - If the existing sprint workflow is **not completed** (`status` is not `completed` or there are still Pending / In Progress sprints), tell the user there is an unfinished plan and ask whether to **continue the existing plan first** or **clean up the old `.sprint/` documents and create a new one**.
+    - Preferred wording: "There is an unfinished sprint plan. Do you want to continue it first, or clean the old `.sprint/` documents and start a new plan?"
+  - If the user chooses cleanup, remove only sprint workflow artifacts under `.sprint/` before reinitializing. Do NOT touch project source code.
+  - If the user does not confirm cleanup, do NOT overwrite the existing sprint documents.
 - Make the iteration plan detailed enough that a sub-agent with NO prior context can execute each sprint independently.

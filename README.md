@@ -65,14 +65,42 @@ Main Agent (Orchestrator)           Sub-Agent (Executor)
 │ 1. Read iteration    │           │ 1. Read PRD sections │
 │    plan              │           │ 2. Read handoff doc  │
 │ 2. Read PRD sections │──prompt──▶│ 3. Read CLAUDE.md    │
-│ 3. Read CLAUDE.md    │           │ 4. Execute tasks     │
-│ 4. Read code patterns│           │ 5. Update plan       │
-│ 5. Construct prompt  │           │ 6. Write report      │
-│ 6. Dispatch sub-agent│◀─result──│ 7. Prepare handoff   │
+│ 3. Read design       │           │ 4. Read clarifications│
+│    decisions         │           │ 5. Execute tasks     │
+│ 4. Run clarification │           │ 6. Update plan       │
+│    gate if needed    │           │ 7. Write report      │
+│ 5. Read code patterns│           │ 8. Prepare handoff   │
+│ 6. Dispatch sub-agent│◀─result──│                      │
 │ 7. Validate result   │           └──────────────────────┘
 │ 8. Next sprint...    │
 └──────────────────────┘
 ```
+
+### Design Decisions: Think Once, Execute Many
+
+During `/sprint-init`, Sprint Flow performs project-level analysis and generates `.sprint/design-decisions.md`.
+
+This file captures:
+- project type and testing standards
+- resolved project-level questions
+- design decisions with rationale
+- sprint contracts between iterations
+- clarification escalation policy
+
+Sub-agents consume these decisions during sprint execution so they inherit the global design context without redoing the same analysis every sprint.
+
+### Clarification Gate
+
+Before executing a sprint, `/sprint-run` can run a clarification gate to detect blocking ambiguities for that specific sprint.
+
+The clarification flow works like this:
+- identify only **blocking** ambiguities for the current sprint
+- write `.sprint/clarification-sprint-{N}.md` when clarification is needed
+- ask the user a single batched round of questions
+- save answers to `.sprint/sprint-{N}-clarifications.md`
+- treat those answers as authoritative during sprint execution
+
+This keeps project-wide reasoning in `design-decisions.md`, sprint-specific decisions in clarification files, and implementation work inside the clean-context executor.
 
 ### Key Design: Prompt Quality = Output Quality
 
@@ -86,19 +114,22 @@ Sub-agents don't browse the codebase proactively. The orchestrator must include:
 
 ```
 .sprint/
-├── config.json                    # Project config and current state
-├── iteration-plan.md              # Master plan with all sprints
-├── handoff-sprint-0.md            # Sprint 0 detailed instructions
-├── handoff-sprint-1.md            # Sprint 1 detailed instructions
-├── sprint-0-completion-report.md  # What Sprint 0 accomplished
-├── sprint-1-completion-report.md  # What Sprint 1 accomplished
+├── config.json                      # Project config and current state
+├── design-decisions.md              # Global decisions, contracts, and escalation policy
+├── iteration-plan.md                # Master plan with all sprints
+├── handoff-sprint-0.md              # Sprint 0 detailed instructions
+├── handoff-sprint-1.md              # Sprint 1 detailed instructions
+├── clarification-sprint-1.md        # Blocking questions for a sprint when needed
+├── sprint-1-clarifications.md       # User answers for sprint-specific blockers
+├── sprint-0-completion-report.md    # What Sprint 0 accomplished
+├── sprint-1-completion-report.md    # What Sprint 1 accomplished
 └── ...
 ```
 
 ### Sprint Splitting Principles
 
 - Sprint 0: critical bugs/security or foundational setup
-- Each sprint: 2-4 hours of AI work
+- Each sprint: 2-8 minutes of AI work
 - Clear boundaries (full module or well-defined subset)
 - Strictly ordered dependencies
 - Each sprint produces testable output
@@ -108,23 +139,6 @@ Sub-agents don't browse the codebase proactively. The orchestrator must include:
 
 - Claude Code CLI
 - A PRD document in your project
-
-## Version
-
-0.2.0
-- Add design analysis phase in sprint-init (Think Once, Execute Many)
-- Introduce project type detection and type-specific testing standards
-- Add sprint contracts to define deliverables between sprints
-- Include design decisions and rationale in handoff documents
-- Add self-review checklist for sprint-executor
-- Enhance completion reports with contract compliance verification
-
-0.1.1
-- Enforce strict sequential sprint execution (no parallel dispatch)
-- Require unit tests as part of each sprint deliverable
-- Fix `current_sprint` indexing to match `total_sprints` on completion
-
-0.1.0 — Initial release
 
 ## License
 
