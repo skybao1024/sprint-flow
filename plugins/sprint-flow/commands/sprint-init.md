@@ -28,7 +28,7 @@ Read the entire PRD document. Identify:
 - Major modules/features (these become sprint candidates)
 - Dependencies between modules
 - Tech stack and constraints
-- Any existing CLAUDE.md conventions
+- Any existing project instruction file conventions. Host selection is explicit: use `CLAUDE.md` for Claude Code and `AGENTS.md` for Codex.
 
 ### 3. Design Analysis (Think Once, Execute Many)
 
@@ -40,7 +40,18 @@ Before splitting into sprints, perform deep analysis to resolve **project-level 
 - `/sprint-run` resolves **sprint-level ambiguity** through a clarification gate before execution when a specific sprint still has blocking feature-level questions.
 - Do NOT try to fully resolve every feature detail during init. The goal is to make sprint execution well-scoped, not to replace per-sprint detailed design review.
 
-#### 3a. Project Type Detection & Development Standards
+#### 3a. Host Instruction File Selection
+
+Before generating `.sprint/config.json`, determine the active host and set `runtime.instruction_file_path` using these rules:
+
+- If the host is **Claude Code**, set `runtime.instruction_file_path` to `CLAUDE.md` if that file exists.
+- If the host is **Codex**, set `runtime.instruction_file_path` to `AGENTS.md` if that file exists.
+- If the expected host-specific file does not exist, leave `runtime.instruction_file_path` empty.
+- Do NOT substitute another host's instruction file automatically.
+
+This keeps one canonical field for downstream prompts while preserving host-specific rule discovery.
+
+#### 3b. Project Type Detection & Development Standards
 
 Analyze the PRD to detect the project type and record it in `config.json` as `project_type`. Apply **type-specific development standards** based on the detected type:
 
@@ -55,7 +66,7 @@ Analyze the PRD to detect the project type and record it in `config.json` as `pr
 
 If the project type is ambiguous, ask the user to confirm.
 
-#### 3b. Ambiguity Detection
+#### 3c. Ambiguity Detection
 
 Identify unclear, missing, or conflicting points in the PRD. Categorize into:
 
@@ -63,16 +74,16 @@ Identify unclear, missing, or conflicting points in the PRD. Categorize into:
 - **Business logic gaps**: Missing rules, edge cases, or workflows
 - **Scope boundaries**: Unclear what's in/out of scope
 
-#### 3c. Layered Questioning
+#### 3d. Layered Questioning
 
-Use `AskUserQuestion` to resolve ambiguities in **batched rounds** (not one-at-a-time):
+Use the host's interactive question capability (for Claude Code, `AskUserQuestion`) to resolve ambiguities in **batched rounds** (not one-at-a-time):
 
 - **Round 1**: Independent questions (2-4 per batch, multiple choice preferred) — tech stack, deployment targets, scope confirmations
 - **Round 2** (if needed): Follow-up questions that depend on Round 1 answers — e.g., if user chose JWT, ask about token refresh strategy
 - **Round 3** (if needed): Final clarifications
 - **Maximum 3 rounds total** to keep init phase efficient
 
-#### 3d. Design Decisions, Sprint Contracts & Escalation Policy
+#### 3e. Design Decisions, Sprint Contracts & Escalation Policy
 
 Based on PRD analysis and user answers:
 
@@ -82,7 +93,7 @@ Based on PRD analysis and user answers:
    - Escalate only when ambiguity affects business rules, MVP scope boundaries, schema/data invariants, external API contracts, auth/security behavior, or downstream sprint contracts
    - For non-blocking ambiguities, the sprint executor should choose the most conservative implementation and document assumptions in the completion report
 
-#### 3e. Generate `.sprint/design-decisions.md`
+#### 3f. Generate `.sprint/design-decisions.md`
 
 ```markdown
 # Design Decisions — <Project Name>
@@ -153,14 +164,28 @@ Create the following files in the project root:
   "current_sprint": 0,
   "status": "initialized",
   "created_at": "<ISO date>",
+  "runtime": {
+    "host": "<claude-code|codex|other>",
+    "instruction_file_path": "<host-specific path: Claude Code uses CLAUDE.md, Codex uses AGENTS.md>",
+    "capabilities": {
+      "delegation": true,
+      "interactive_questions": true
+    }
+  },
   "conventions": {
-    "claude_md_path": "<path to CLAUDE.md if exists>",
     "test_command": "<detected test command>",
     "build_command": "<detected build command>",
-    "key_patterns": ["<important patterns from CLAUDE.md or codebase>"]
+    "key_patterns": ["<important patterns from the selected host instruction file or codebase>"]
   }
 }
 ```
+
+The selected `runtime.instruction_file_path` must always match the active host:
+
+- Claude Code → `CLAUDE.md`
+- Codex → `AGENTS.md`
+
+Do not write another host's instruction file into this field.
 
 **`.sprint/iteration-plan.md`** — structured iteration plan:
 
@@ -211,7 +236,7 @@ Create the following files in the project root:
 
 Before starting, read these documents:
 1. **PRD**: `<prd_path>` — Focus on: <specific sections>
-2. **CLAUDE.md**: `<path>` — Coding standards
+2. **Instruction File**: `<runtime.instruction_file_path>` — Current host's project-specific coding standards and conventions
 3. **Iteration Plan**: `.sprint/iteration-plan.md`
 
 ## Task List
@@ -236,7 +261,7 @@ Before starting, read these documents:
 
 ### Key Constraints
 - <constraint from PRD>
-- <constraint from CLAUDE.md>
+- <constraint from the project instruction file>
 
 ## Test Scenarios
 
@@ -276,6 +301,7 @@ After creating all files, output:
 - Brief description of each sprint
 - Note that project-level ambiguities were resolved here, while sprint-level blockers will be handled by `/sprint-flow:sprint-run` through the clarification gate if needed
 - Command to start: "Run `/sprint-flow:sprint-run` to begin executing sprints, or `/sprint-flow:sprint-status` to review the plan"
+- If the current host uses different command discovery or install steps, follow that host's wrapper documentation while reusing the same `.sprint/` workflow artifacts
 
 ## Important
 

@@ -32,7 +32,7 @@ Before dispatching, gather ALL necessary information:
 1. Read `.sprint/handoff-sprint-{N}.md` for detailed instructions
 2. Read `.sprint/design-decisions.md` — extract design context, sprint contracts, development standards, and clarification escalation policy relevant to this sprint
 3. Read the PRD file (path from config.json) — identify sections relevant to this sprint
-4. Read `CLAUDE.md` (if exists) for project conventions
+4. Read the project instruction file from `.sprint/config.json` if one is configured (`runtime.instruction_file_path`)
 5. If N > 0, read `.sprint/sprint-{N-1}-completion-report.md` for prior context
 6. If `.sprint/sprint-{N}-clarifications.md` already exists, read it first to avoid re-asking resolved questions
 7. Scan the codebase for patterns:
@@ -64,7 +64,7 @@ Read these files before making any decision:
 1. `{prd_path}` — Focus on:
    {specific_section_list}
 
-2. `{claude_md_path}` — Project conventions and constraints.
+2. `{instruction_file_path}` — Project conventions and constraints. If no instruction file is configured, proceed without it.
 
 3. `.sprint/handoff-sprint-{N}.md` — Sprint scope and task list.
 
@@ -104,7 +104,7 @@ If something is non-blocking, assume the most conservative implementation and do
 
 - Do NOT implement any code.
 - Do NOT modify product code.
-- Do NOT call AskUserQuestion.
+- Do NOT initiate a direct user interaction step from this clarification executor.
 - Do NOT generate more than 4 blocking questions total.
 - Prefer 0 questions if the sprint can proceed safely with conservative assumptions.
 
@@ -148,7 +148,7 @@ Create `.sprint/clarification-sprint-{N}.md` using this structure:
 ...
 
 ## Ask Strategy
-- Batch all questions into one AskUserQuestion round
+- Batch all questions into one orchestrator-managed interactive question round
 - Prefer multiple choice where possible
 - Maximum 4 questions total
 
@@ -170,15 +170,7 @@ Only escalate when lack of clarification would likely cause:
 If the sprint can still be executed safely with a conservative assumption, do not escalate.
 ```
 
-Dispatch this sub-agent before implementation:
-
-```text
-Agent(
-  prompt: <constructed clarification prompt>,
-  description: "Clarify Sprint {N}: {sprint_name}",
-  model: "sonnet"
-)
-```
+Dispatch this clarification executor before implementation using the current host's delegation mechanism (for Claude Code, this is typically `Agent(...)`).
 
 ### Step 2.3: Resolve Clarifications
 
@@ -187,7 +179,7 @@ After the clarification sub-agent returns:
 1. If it returned `STATUS: no_questions`, proceed directly to implementation.
 2. If it returned `STATUS: needs_clarification`:
    - Read `.sprint/clarification-sprint-{N}.md`
-   - Convert the blocking questions into a single batched `AskUserQuestion` round
+   - Convert the blocking questions into a single batched interactive question round using the current host's user-interaction capability (for Claude Code, `AskUserQuestion`)
    - Prefer multiple-choice options when the clarification file provides a clear recommended default
    - Keep the round to 2-4 total questions
    - Write the user's answers to `.sprint/sprint-{N}-clarifications.md`
@@ -214,7 +206,7 @@ You MUST read these files IN ORDER before writing any code:
 1. `{prd_path}` — The PRD document. Focus on:
    {specific_section_list}
 
-2. `{claude_md_path}` — Project coding standards.
+2. `{instruction_file_path}` — Project coding standards. If no instruction file is configured, proceed without it.
 
 3. `.sprint/handoff-sprint-{N}.md` — Your detailed task list.
 
@@ -252,11 +244,11 @@ Study these files to understand coding patterns:
 
 ## Key Constraints
 
-{constraints_from_prd_and_claude_md}
+{constraints_from_prd_and_instruction_file}
 
 ## Clarification Rules
 
-- Do NOT call AskUserQuestion directly.
+- Do NOT initiate a direct user interaction step from the implementation executor.
 - If `.sprint/sprint-{N}-clarifications.md` exists, treat it as authoritative.
 - If you encounter non-blocking ambiguity, choose the most conservative implementation and document it in the completion report.
 - If you encounter blocking ambiguity during execution, do not guess and do not question the user directly. Instead, create `.sprint/clarification-sprint-{N}-followup.md` for the orchestrator to review.
@@ -306,13 +298,7 @@ Before creating your completion report, verify:
 
 ### Step 2.5: Dispatch Implementation Sub-Agent
 
-```text
-Agent(
-  prompt: <constructed implementation prompt>,
-  description: "Execute Sprint {N}: {sprint_name}",
-  model: "sonnet"
-)
-```
+Dispatch the implementation executor using the current host's delegation mechanism (for Claude Code, this is typically `Agent(...)`). If the host does not support delegated execution, run the sprint in the main session while preserving the same prompt contract and sequential execution rules.
 
 Use `model: "sonnet"` by default. Use "opus" only for complex architectural sprints or after a sonnet attempt fails.
 

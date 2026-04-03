@@ -4,7 +4,7 @@
     "name": "skybao1024"
   },
   "metadata": {
-    "description": "Iterative sprint development workflows for Claude Code",
+    "description": "Iterative sprint development workflows with Claude Code plugin support and Codex-compatible workflow artifacts",
     "version": "0.1.1"
   },
   "plugins": [

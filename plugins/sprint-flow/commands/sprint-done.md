@@ -100,7 +100,7 @@ To start Sprint {N+1}:
 3. Read `.sprint/sprint-{N}-completion-report.md`
 4. Read `.sprint/handoff-sprint-{N+1}.md`
 5. Read PRD at `{prd_path}`, focus on: {sections}
-6. Read `CLAUDE.md`
+6. Read the project instruction file at `{instruction_file_path}` if one is configured
 
 Then execute the tasks in the handoff document.
 

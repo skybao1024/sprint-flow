@@ -13,7 +13,7 @@ The `/sprint-run` command dispatches this agent for each sprint. You should NOT 
 
 ## What This Agent Does
 
-1. Reads all documents specified in its prompt (PRD, handoff, CLAUDE.md, design decisions, clarifications)
+1. Reads all documents specified in its prompt (PRD, handoff, instruction file, design decisions, clarifications)
 2. Executes each task in the sprint's task list
 3. Updates the iteration plan to mark the sprint as completed
 4. Creates a completion report documenting all changes, assumptions, and issues
@@ -23,7 +23,7 @@ The `/sprint-run` command dispatches this agent for each sprint. You should NOT 
 
 This agent is an execution agent, not a user interaction agent.
 
-- Do NOT call `AskUserQuestion` directly.
+- Do NOT start a direct user interaction step from the executor. If the host wrapper supports an interactive question tool, only the orchestrator may use it.
 - If `.sprint/sprint-{N}-clarifications.md` is provided in the prompt, treat it as authoritative.
 - For **non-blocking ambiguities**, choose the most conservative implementation and document the assumption in the completion report.
 - For **blocking ambiguities** discovered during execution, do not guess and do not ask the user directly. Create `.sprint/clarification-sprint-{N}-followup.md` for the orchestrator to review.
@@ -37,7 +37,7 @@ This agent is an execution agent, not a user interaction agent.
 The orchestrator (main agent running `/sprint-run`) must provide:
 
 - Project name, tech stack, sprint objective
-- Exact file paths to PRD, CLAUDE.md, handoff document
+- Exact file paths to PRD, instruction file, handoff document
 - Specific PRD sections to focus on
 - **Design decisions** relevant to this sprint (from `.sprint/design-decisions.md`)
 - **Clarification answers** for this sprint if they exist (from `.sprint/sprint-{N}-clarifications.md`)

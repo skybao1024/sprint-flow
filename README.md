@@ -1,6 +1,6 @@
 # Sprint Flow
 
-Iterative sprint development workflow plugin for Claude Code. Split PRD into sprints, execute each with a clean-context sub-agent, auto-generate handoffs and completion reports.
+Iterative sprint development workflow for Claude Code, with a Codex-compatible integration path. Split PRD into sprints, execute each with a clean-context delegated executor when the host supports it, and auto-generate handoffs and completion reports.
 
 ## The Problem
 
@@ -11,26 +11,44 @@ When building a project from a PRD, a single AI session runs into context limits
 Sprint Flow automates this pattern:
 
 ```
-PRD → Split into Sprints → Execute each Sprint via Sub-Agent → Validate → Loop
+PRD → Split into Sprints → Execute each Sprint via Delegated Executor → Validate → Loop
 ```
 
-Each sprint gets a sub-agent with clean context and a carefully constructed prompt containing only what it needs.
+Each sprint gets a delegated executor with clean context when the host supports it, plus a carefully constructed prompt containing only what it needs. On hosts without equivalent delegation, the same sprint contract can still run in the main session.
 
 ## Installation
 
-### Step 1: Add marketplace
+### Claude Code
+
+#### Step 1: Add marketplace
 
 ```
 /plugin marketplace add skybao1024/sprint-flow
 ```
 
-### Step 2: Install plugin
+#### Step 2: Install plugin
 
 ```
 /plugin install sprint-flow@sprint-flow-marketplace
 ```
 
+### Codex
+
+Sprint Flow ships a Codex Skills entrypoint at `.codex/skills/sprint-flow`.
+
+For end users, Codex support is distributed as a **Skill**, separate from the Claude Code plugin wrapper:
+- skill entrypoint: `.codex/skills/sprint-flow/SKILL.md`
+- command wrappers: `.codex/skills/sprint-flow/commands/*.md`
+
+Install the repository's `sprint-flow` skill into a Codex skills discovery path supported by your Codex installation, then restart Codex so it re-discovers the skill metadata.
+
+See `.codex/INSTALL.md` for the supported layout, what gets installed, and local setup examples.
+
+Codex support reuses the same `.sprint/` workflow artifacts, but installation and capability mapping stay separate from the Claude Code plugin wrapper.
+
 ## Quick Start
+
+Claude Code commands:
 
 ```bash
 # 1. Initialize: analyze PRD and create sprint plan
@@ -60,17 +78,17 @@ Each sprint gets a sub-agent with clean context and a carefully constructed prom
 ### Architecture
 
 ```
-Main Agent (Orchestrator)           Sub-Agent (Executor)
+Main Agent (Orchestrator)           Delegated Executor
 ┌──────────────────────┐           ┌──────────────────────┐
 │ 1. Read iteration    │           │ 1. Read PRD sections │
 │    plan              │           │ 2. Read handoff doc  │
-│ 2. Read PRD sections │──prompt──▶│ 3. Read CLAUDE.md    │
-│ 3. Read design       │           │ 4. Read clarifications│
-│    decisions         │           │ 5. Execute tasks     │
-│ 4. Run clarification │           │ 6. Update plan       │
-│    gate if needed    │           │ 7. Write report      │
-│ 5. Read code patterns│           │ 8. Prepare handoff   │
-│ 6. Dispatch sub-agent│◀─result──│                      │
+│ 2. Read PRD sections │──prompt──▶│ 3. Read instruction  │
+│ 3. Read design       │           │    file if present   │
+│    decisions         │           │ 4. Read clarifications│
+│ 4. Run clarification │           │ 5. Execute tasks     │
+│    gate if needed    │           │ 6. Update plan       │
+│ 5. Read code patterns│           │ 7. Write report      │
+│ 6. Dispatch executor │◀─result──│ 8. Prepare handoff   │
 │ 7. Validate result   │           └──────────────────────┘
 │ 8. Next sprint...    │
 └──────────────────────┘
@@ -87,7 +105,7 @@ This file captures:
 - sprint contracts between iterations
 - clarification escalation policy
 
-Sub-agents consume these decisions during sprint execution so they inherit the global design context without redoing the same analysis every sprint.
+Delegated executors consume these decisions during sprint execution so they inherit the global design context without redoing the same analysis every sprint.
 
 ### Clarification Gate
 
@@ -100,12 +118,12 @@ The clarification flow works like this:
 - save answers to `.sprint/sprint-{N}-clarifications.md`
 - treat those answers as authoritative during sprint execution
 
-This keeps project-wide reasoning in `design-decisions.md`, sprint-specific decisions in clarification files, and implementation work inside the clean-context executor.
+This keeps project-wide reasoning in `design-decisions.md`, sprint-specific decisions in clarification files, and implementation work inside the delegated executor.
 
 ### Key Design: Prompt Quality = Output Quality
 
-Sub-agents don't browse the codebase proactively. The orchestrator must include:
-- **Exact file paths** to PRD, CLAUDE.md, pattern files
+Delegated executors don't browse the codebase proactively. The orchestrator must include:
+- **Exact file paths** to PRD, instruction file, pattern files
 - **Specific PRD sections** (e.g., "Section 5.3")
 - **Complete task lists** pasted into the prompt
 - **Concrete constraints** from project conventions
@@ -137,7 +155,8 @@ Sub-agents don't browse the codebase proactively. The orchestrator must include:
 
 ## Requirements
 
-- Claude Code CLI
+- Claude Code CLI for the current plugin wrapper
+- Codex, if you use the Codex wrapper described in `.codex/INSTALL.md`
 - A PRD document in your project
 
 ## License
