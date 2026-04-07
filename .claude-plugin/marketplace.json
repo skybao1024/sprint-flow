@@ -5,14 +5,14 @@
   },
   "metadata": {
     "description": "Iterative sprint development workflows with Claude Code plugin support and Codex-compatible workflow artifacts",
-    "version": "0.1.1"
+    "version": "0.2.2"
   },
   "plugins": [
     {
       "name": "sprint-flow",
       "source": "./plugins/sprint-flow",
-      "description": "Split PRD into sprints, execute each via sub-agent with clean context, auto-generate handoffs and completion reports",
-      "version": "0.1.1",
+      "description": "Split PRD into sprints, execute each via delegated executor with clean context, auto-generate handoffs and completion reports",
+      "version": "0.2.2",
       "license": "MIT",
       "keywords": ["sprint", "workflow", "prd", "iterative", "sub-agent"],
       "category": "productivity"
