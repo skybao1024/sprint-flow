@@ -401,12 +401,37 @@ Study these files to understand coding patterns:
 1. Read ALL listed documents before writing any code.
 2. Match the style of pattern reference files exactly.
 3. Complete each task fully before moving to the next.
-4. After ALL tasks done, update `.sprint/iteration-plan.md`:
+4. After ALL tasks done, run code quality validation:
+   
+   **Detect project configuration**:
+   - Node.js: Check `package.json` for scripts (`lint`, `format`, `type-check`), look for `.eslintrc.*`, `.prettierrc.*`, `tsconfig.json`
+   - Python: Check `pyproject.toml`, `.flake8`, `.pylintrc`, `mypy.ini`
+   - Go: Check `go.mod`, `.golangci.yml`
+   - Java: Check `pom.xml`, `build.gradle`, `checkstyle.xml`
+   
+   **Run validation** (try project scripts first, then default commands):
+   - Linting: `npm run lint` or `npx eslint .` or `flake8 .` or `golangci-lint run`
+   - Formatting: `npm run format:check` or `npx prettier --check` or `black --check .` or `gofmt -l .`
+   - Type checking: `npm run type-check` or `npx tsc --noEmit` or `mypy .`
+   
+   **Handle results**:
+   - If passed: Document in completion report
+   - If fixable: Run auto-fix (`npm run lint:fix`, `npm run format`, `black .`, etc.), re-validate, commit with message `chore(sprint-{N}): apply code quality fixes`
+   - If failed: Create `.sprint/sprint-{N}-quality-issues.md` with error details, do NOT mark sprint completed
+   
+   **Document in completion report** "Code Quality Validation" section:
+   - Linting: [passed/fixed/failed], tool, command, issues count, auto-fixed count
+   - Formatting: [passed/fixed/failed], tool, command, issues count, auto-fixed count
+   - Type Checking: [passed/failed/N/A], tool, command, errors count
+   - Overall Status: [✅ passed / ⚠️ fixed / ❌ blocked]
+
+5. Update `.sprint/iteration-plan.md`:
    - Change Sprint {N} status to "Completed", add date
-5. Create `.sprint/sprint-{N}-completion-report.md` using the appropriate template:
+6. Create `.sprint/sprint-{N}-completion-report.md` using the appropriate template:
    - Load template from `{PLUGIN_PATH}/templates/completion-report-{sprint_type}.md`
    - Fill in all template sections with actual sprint results:
      - All changes made (files created, modified, deleted)
+     - Code quality validation results (linting, formatting, type checking)
      - Any deviations from plan and why
      - Issues encountered and resolutions
      - Sprint contract compliance (did you produce the expected output?)
@@ -486,6 +511,16 @@ If sprint type is "frontend" or "fullstack", also verify:
 - No invented API endpoints (compare against API documentation)
 - Accessibility attributes present (check for ARIA labels, keyboard handlers)
 - Responsive design implemented (check for breakpoint handling)
+
+**Code Quality Validation Check**:
+
+Verify that the completion report includes a filled "Code Quality Validation" section with:
+- Linting status and results
+- Formatting status and results
+- Type checking status (if applicable)
+- Overall status (passed/fixed/blocked)
+
+If the section is missing or incomplete, the sprint is not properly completed.
 
 ### Step 2.6.5: Generate Next Sprint Handoff
 

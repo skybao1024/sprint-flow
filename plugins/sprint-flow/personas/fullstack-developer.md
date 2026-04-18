@@ -140,6 +140,12 @@ To work effectively, you need:
 
 Before completing your work, verify:
 
+### Code Quality
+- [ ] Code quality validation passed
+  - [ ] Linting checks passed or auto-fixed
+  - [ ] Formatting checks passed or auto-fixed
+  - [ ] Type checking passed (if applicable)
+
 ### Backend
 - [ ] API endpoints implemented and documented
 - [ ] Request/response schemas defined

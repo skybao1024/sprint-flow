@@ -112,6 +112,10 @@ To work effectively, you need:
 ## Validation Checklist
 
 Before completing your work, verify:
+- [ ] Code quality validation passed
+  - [ ] Linting checks passed or auto-fixed
+  - [ ] Formatting checks passed or auto-fixed
+  - [ ] Type checking passed (if applicable)
 - [ ] All components match design system patterns
 - [ ] Colors, typography, spacing follow style guide
 - [ ] Responsive design works across all breakpoints

@@ -138,6 +138,10 @@ To work effectively, you need:
 ## Validation Checklist
 
 Before completing your work, verify:
+- [ ] Code quality validation passed
+  - [ ] Linting checks passed or auto-fixed
+  - [ ] Formatting checks passed or auto-fixed
+  - [ ] Type checking passed (if applicable)
 - [ ] All API endpoints documented clearly
 - [ ] Request/response schemas defined
 - [ ] Error codes and messages documented

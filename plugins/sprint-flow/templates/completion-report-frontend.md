@@ -20,6 +20,27 @@
 ### Deleted
 - `{file_path}` — {description}
 
+## Code Quality Validation
+
+- **Linting**: [passed / fixed / failed]
+  - Tool: {detected tool and version}
+  - Command: {command executed}
+  - Issues found: {count}
+  - Auto-fixed: {count}
+
+- **Formatting**: [passed / fixed / failed]
+  - Tool: {detected tool and version}
+  - Command: {command executed}
+  - Issues found: {count}
+  - Auto-fixed: {count}
+
+- **Type Checking**: [passed / failed / N/A]
+  - Tool: {detected tool and version}
+  - Command: {command executed}
+  - Errors found: {count}
+
+- **Overall Status**: [✅ passed / ⚠️ fixed / ❌ blocked]
+
 ## Design Validation Checklist
 
 - [ ] Components match design system patterns
