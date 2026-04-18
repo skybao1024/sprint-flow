@@ -39,21 +39,36 @@ Before dispatching, gather ALL necessary information:
    - Use Glob/Grep to find example files referenced in the handoff
    - Identify 1-2 representative files as pattern references
 
-### Step 2.1.5: Detect Sprint Type and Load Conditional Context
+### Step 2.1.5: Activate Persona and Load Context
 
-**Read sprint type from iteration-plan.md** and load additional context based on sprint type:
+**Activate appropriate persona based on sprint type** and load persona-specific context:
 
 1. **Extract sprint type** from `.sprint/iteration-plan.md` for Sprint {N}
    - Look for the "Type" field in the sprint details section
    - Possible values: `frontend`, `backend`, `fullstack`
 
-2. **Branch based on sprint type**:
+2. **Activate primary persona based on sprint type**:
+   - `frontend` → Activate **frontend-developer** persona
+   - `backend` → Activate **backend-developer** persona
+   - `fullstack` → Activate **fullstack-developer** persona
 
-   **If sprint type is "backend"**:
-   - Skip frontend context loading
-   - Proceed with standard context only
+3. **Activate assistant personas as needed**:
+   - **Frontend sprints**: Activate `design-specialist` + `api-integration-specialist`
+   - **Backend sprints**: No assistant personas needed
+   - **Fullstack sprints**: Activate `design-specialist` + `api-integration-specialist`
 
-   **If sprint type is "frontend" or "fullstack"**:
+4. **Load persona files**:
+   - Read primary persona file: `plugins/sprint-flow/personas/{persona-name}.md`
+   - Extract persona identity, workflow, quality standards, validation checklist
+   - If assistant personas needed, read their files as well
+
+5. **Load persona-specific context**:
+
+   **For backend persona**:
+   - Load standard context only
+   - No additional context needed
+
+   **For frontend/fullstack personas**:
    - Read `.sprint/config.json` and extract `frontend_context` object
    - Load design system configuration:
      - Framework, version, component library
@@ -66,9 +81,10 @@ Before dispatching, gather ALL necessary information:
      - Extract endpoints mentioned in sprint task list
      - Format each endpoint with request/response schemas
      - Include authentication requirements
-   - Prepare frontend-specific validation checklist
+   - Load design-specialist guidance
+   - Load api-integration-specialist guidance
 
-3. **Store loaded context** for use in implementation prompt construction
+6. **Store activated persona and context** for use in implementation prompt construction
 
 ### Step 2.2: Run the Sprint Clarification Gate
 
@@ -218,17 +234,30 @@ After the clarification sub-agent returns:
 
 ### Step 2.4: Construct Implementation Sub-Agent Prompt
 
-**THIS IS THE MOST CRITICAL STEP.** Build the prompt using this template:
+**THIS IS THE MOST CRITICAL STEP.** Build the prompt using persona-based template:
 
 ```text
-You are a developer working on the {project_name} project.
-Your task is to complete Sprint {N}: {sprint_name}.
+{persona_identity_section}
 
-## Project Context
+## Your Mission
+
+You are working on the {project_name} project.
+Your task is to complete Sprint {N}: {sprint_name}.
 
 **Project**: {project_name}
 **Tech Stack**: {tech_stack}
-**Your Objective**: {sprint_objective}
+**Sprint Objective**: {sprint_objective}
+
+{if has_assistant_personas}
+## Your Support Team
+
+You are supported by specialist advisors:
+{for each assistant_persona}
+- **{assistant_name}**: {assistant_description}
+{endfor}
+
+Consult their guidance sections below for specialized advice.
+{endif}
 
 ## MANDATORY: Read These Documents First
 
@@ -251,30 +280,47 @@ You MUST read these files IN ORDER before writing any code:
 6. `.sprint/sprint-{N-1}-completion-report.md` — Previous sprint results.
 {endif}
 
+{persona_workflow_section}
+
 ## Design Context
 
 {relevant decisions and rationale from design-decisions.md for this sprint}
 
 {if sprint_type == "frontend" or sprint_type == "fullstack"}
-## Design Context (Frontend Sprint)
 
-**Design System**: {framework} {version}
+## Design Specialist Guidance
+
+{design_specialist_identity}
+
+### Design System Configuration
+
+**Framework**: {framework} {version}
 **Component Library**: {component_library}
 **Style Guide**: {style_guide_url}
 **Design References**: {design_references}
 
 ### Design Requirements
+
 - Follow {framework} design system patterns and conventions
+- Use design system tokens (colors, spacing, typography)
 - Match existing component styles and patterns from the codebase
 - Implement responsive design for all breakpoints (mobile, tablet, desktop)
 - Ensure WCAG 2.1 AA accessibility compliance:
   - Keyboard navigation support for all interactive elements
   - Screen reader compatibility with proper ARIA labels
-  - Color contrast ratios meet accessibility standards
+  - Color contrast ratios meet accessibility standards (4.5:1 for text)
   - Focus indicators visible and clear
 - Consult design references for visual guidance and layout details
 
-## API Documentation (Frontend Integration)
+### Design Validation Checklist
+
+{design_specialist_validation_checklist}
+
+## API Integration Specialist Guidance
+
+{api_integration_specialist_identity}
+
+### API Configuration
 
 **API Base URL**: {base_url}
 **Authentication**: {auth_method}
@@ -290,7 +336,8 @@ You MUST read these files IN ORDER before writing any code:
 - Response schema with example
 - Error codes and handling}
 
-### Frontend API Integration Rules
+### API Integration Rules
+
 - MUST use documented endpoints exactly as specified above
 - MUST match request/response schemas from API documentation
 - MUST NOT invent endpoints or modify contracts
@@ -298,6 +345,11 @@ You MUST read these files IN ORDER before writing any code:
 - MUST include authentication headers as specified
 - Document any API discrepancies or issues in completion report
 - Escalate API contract problems to backend team (do not work around)
+
+### API Integration Validation Checklist
+
+{api_integration_specialist_validation_checklist}
+
 {endif}
 
 {if sprint_type == "backend"}
@@ -365,27 +417,33 @@ Study these files to understand coding patterns:
 
 ## Self-Review Before Reporting
 
-Before creating your completion report, verify:
+Before creating your completion report, verify using your persona's quality standards:
+
+{persona_validation_checklist}
+
+{if sprint_type == "frontend" or sprint_type == "fullstack"}
+### Design Specialist Validation
+- [ ] Components match design system patterns
+- [ ] Colors, typography, spacing follow style guide
+- [ ] Responsive design works across all breakpoints
+- [ ] Accessibility requirements met (WCAG 2.1 AA)
+- [ ] Design references consulted and followed
+
+### API Integration Specialist Validation
+- [ ] All API calls use documented endpoints (no invented APIs)
+- [ ] Request/response schemas match API documentation
+- [ ] Authentication implemented correctly
+- [ ] Error handling follows API error codes
+- [ ] No modified API contracts
+{endif}
+
+### Standard Validation
 - [ ] All tasks from handoff are implemented (not partially)
 - [ ] Sprint contracts are satisfied (output matches what next sprint expects)
 - [ ] All required test scenarios have passing tests
 - [ ] No TODO/FIXME comments left in code
 - [ ] Code follows patterns from pattern reference files
 - [ ] Clarification answers were followed if provided
-{if sprint_type == "frontend" or sprint_type == "fullstack"}
-- [ ] Components match design system patterns
-- [ ] All API calls use documented endpoints (no invented APIs)
-- [ ] Request/response schemas match API documentation
-- [ ] Accessibility requirements met (WCAG 2.1 AA)
-- [ ] Responsive design implemented for all breakpoints
-- [ ] Design references consulted and followed
-{endif}
-{if sprint_type == "backend"}
-- [ ] API contracts documented clearly
-- [ ] Unit tests cover all business logic paths
-- [ ] Error handling implemented properly
-- [ ] Security best practices followed
-{endif}
 
 ## Do NOT
 - Guess requirements — check the PRD, design decisions, and clarification answers
