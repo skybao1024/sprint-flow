@@ -39,6 +39,58 @@ Before dispatching, gather ALL necessary information:
    - Use Glob/Grep to find example files referenced in the handoff
    - Identify 1-2 representative files as pattern references
 
+### Step 2.1.5: Activate Persona and Load Context
+
+**Activate appropriate persona based on sprint type** and load persona-specific context:
+
+1. **Extract sprint type** from `.sprint/iteration-plan.md` for Sprint {N}
+   - Look for the "Type" field in the sprint details section
+   - Possible values: `frontend`, `backend`, `fullstack`
+
+2. **Activate primary persona based on sprint type**:
+   - `frontend` → Activate **frontend-developer** persona
+   - `backend` → Activate **backend-developer** persona
+   - `fullstack` → Activate **fullstack-developer** persona
+
+3. **Activate assistant personas as needed**:
+   - **Frontend sprints**: Activate `design-specialist` + `api-integration-specialist`
+   - **Backend sprints**: No assistant personas needed
+   - **Fullstack sprints**: Activate `design-specialist` + `api-integration-specialist`
+
+4. **Load persona files**:
+   - **Frontend sprint**: Read `plugins/sprint-flow/personas/frontend-developer.md`
+   - **Backend sprint**: Read `plugins/sprint-flow/personas/backend-developer.md`
+   - **Fullstack sprint**: Read `plugins/sprint-flow/personas/fullstack-developer.md`
+   - Extract persona identity, core competencies, workflow, quality standards, validation checklist
+   - If assistant personas needed (frontend/fullstack), also read:
+     - `plugins/sprint-flow/personas/design-specialist.md`
+     - `plugins/sprint-flow/personas/api-integration-specialist.md`
+   - Extract brief identity (1-2 sentences) and key guidance (3-5 points) from assistants
+
+5. **Load persona-specific context**:
+
+   **For backend persona**:
+   - Load standard context only
+   - No additional context needed
+
+   **For frontend/fullstack personas**:
+   - Read `.sprint/config.json` and extract `frontend_context` object
+   - Load design system configuration:
+     - Framework, version, component library
+     - Style guide URL and design references
+   - Load API documentation configuration:
+     - API doc type, path/URL, base URL, auth method
+   - Parse API documentation for relevant endpoints:
+     - If API doc is a file, read and parse it
+     - If API doc is a URL, fetch and parse it
+     - Extract endpoints mentioned in sprint task list
+     - Format each endpoint with request/response schemas
+     - Include authentication requirements
+   - Load design-specialist guidance
+   - Load api-integration-specialist guidance
+
+6. **Store activated persona and context** for use in implementation prompt construction
+
 ### Step 2.2: Run the Sprint Clarification Gate
 
 Before dispatching the implementation sub-agent, run a **clarification-only sub-agent** to detect blocking ambiguities for this sprint.
@@ -187,17 +239,38 @@ After the clarification sub-agent returns:
 
 ### Step 2.4: Construct Implementation Sub-Agent Prompt
 
-**THIS IS THE MOST CRITICAL STEP.** Build the prompt using this template:
+**THIS IS THE MOST CRITICAL STEP.** Build the prompt using persona-based template:
 
 ```text
-You are a developer working on the {project_name} project.
-Your task is to complete Sprint {N}: {sprint_name}.
+# Your Role and Identity
 
-## Project Context
+{persona_identity_section}
+
+{persona_core_competencies}
+
+{if has_assistant_personas}
+## Your Support Team
+
+You are supported by specialist advisors:
+{for each assistant_persona}
+- **{assistant_name}**: {assistant_description}
+{endfor}
+
+Consult their guidance sections below for specialized advice.
+{endif}
+
+## Your Mission
+
+You are working on the {project_name} project.
+Your task is to complete Sprint {N}: {sprint_name}.
 
 **Project**: {project_name}
 **Tech Stack**: {tech_stack}
-**Your Objective**: {sprint_objective}
+**Sprint Objective**: {sprint_objective}
+
+## Your Workflow
+
+{persona_workflow_section}
 
 ## MANDATORY: Read These Documents First
 
@@ -223,6 +296,58 @@ You MUST read these files IN ORDER before writing any code:
 ## Design Context
 
 {relevant decisions and rationale from design-decisions.md for this sprint}
+
+{if sprint_type == "frontend" or sprint_type == "fullstack"}
+
+## Design Specialist Guidance
+
+{design_specialist_identity_brief}
+
+### Design System Configuration
+
+**Framework**: {framework} {version}
+**Component Library**: {component_library}
+**Style Guide**: {style_guide_url}
+**Design References**: {design_references}
+
+### Key Design Guidance
+
+{design_specialist_key_guidance}
+
+## API Integration Specialist Guidance
+
+{api_integration_specialist_identity_brief}
+
+### API Configuration
+
+**API Base URL**: {base_url}
+**Authentication**: {auth_method}
+**API Documentation**: {api_doc_type} at {api_doc_path_or_url}
+
+### Available Endpoints for This Sprint
+
+{Parsed API contracts for endpoints relevant to this sprint's tasks. Include:
+- Endpoint path and HTTP method
+- Description
+- Authentication requirements
+- Request parameters/body schema
+- Response schema with example
+- Error codes and handling}
+
+### Key API Integration Rules
+
+{api_integration_specialist_key_rules}
+
+{endif}
+
+{if sprint_type == "backend"}
+## Backend Requirements
+- Follow existing API patterns and conventions from codebase
+- Implement comprehensive unit tests for all business logic
+- Document API contracts clearly (endpoints, schemas, error codes)
+- Ensure proper error handling and validation
+- Follow security best practices (input validation, auth, etc.)
+{endif}
 
 ## Sprint Contracts
 
@@ -280,7 +405,27 @@ Study these files to understand coding patterns:
 
 ## Self-Review Before Reporting
 
-Before creating your completion report, verify:
+Before creating your completion report, verify using your persona's quality standards:
+
+{persona_validation_checklist}
+
+{if sprint_type == "frontend" or sprint_type == "fullstack"}
+### Design Specialist Validation
+- [ ] Components match design system patterns
+- [ ] Colors, typography, spacing follow style guide
+- [ ] Responsive design works across all breakpoints
+- [ ] Accessibility requirements met (WCAG 2.1 AA)
+- [ ] Design references consulted and followed
+
+### API Integration Specialist Validation
+- [ ] All API calls use documented endpoints (no invented APIs)
+- [ ] Request/response schemas match API documentation
+- [ ] Authentication implemented correctly
+- [ ] Error handling follows API error codes
+- [ ] No modified API contracts
+{endif}
+
+### Standard Validation
 - [ ] All tasks from handoff are implemented (not partially)
 - [ ] Sprint contracts are satisfied (output matches what next sprint expects)
 - [ ] All required test scenarios have passing tests
@@ -313,6 +458,15 @@ After sub-agent returns:
 5. Check handoff for Sprint N+1 exists (if more remain)
 6. Spot-check: Glob for files in completion report, read 1-2 key files
 7. If sprint contracts are broken, update the next sprint's handoff to note the deviation
+
+**Additional validation for frontend/fullstack sprints**:
+
+If sprint type is "frontend" or "fullstack", also verify:
+- Components follow design system patterns (check imports and styling)
+- API calls use documented endpoints (grep for API base URL usage)
+- No invented API endpoints (compare against API documentation)
+- Accessibility attributes present (check for ARIA labels, keyboard handlers)
+- Responsive design implemented (check for breakpoint handling)
 
 ### Step 2.7: Handle Failures
 

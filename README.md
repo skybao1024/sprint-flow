@@ -68,10 +68,67 @@ Claude Code commands:
 
 | Command | Description |
 |---------|-------------|
-| `/sprint-init <prd>` | Analyze PRD, create `.sprint/` with iteration plan and handoffs |
-| `/sprint-run [N]` | Execute sprints via sub-agents, validate, loop |
+| `/sprint-init <prd>` | Analyze PRD, classify sprint types, create `.sprint/` with iteration plan and handoffs |
+| `/sprint-run [N]` | Execute sprints via sub-agents with type-specific context, validate, loop |
 | `/sprint-done [N]` | Manually complete current sprint, generate report |
 | `/sprint-status [N]` | Show progress dashboard |
+
+## Features
+
+### Persona-Based Professional Workflow
+
+Sprint Flow uses a **persona system** to provide specialized expertise based on sprint type. Each persona has:
+- Professional identity and responsibilities
+- Domain-specific knowledge and best practices
+- Specialized workflow and quality standards
+- Validation checklists tailored to their domain
+
+**Available Personas**:
+- **Frontend Developer**: UI implementation, design system compliance, accessibility
+- **Backend Developer**: API design, business logic, security, database
+- **Fullstack Developer**: End-to-end feature implementation
+- **Design Specialist** (Assistant): Design system guidance and validation
+- **API Integration Specialist** (Assistant): API contract compliance and validation
+
+**Persona Activation**:
+- `frontend` sprint → `frontend-developer` + `design-specialist` + `api-integration-specialist`
+- `backend` sprint → `backend-developer`
+- `fullstack` sprint → `fullstack-developer` + `design-specialist` + `api-integration-specialist`
+
+### Sprint Type Classification
+
+Sprint Flow automatically classifies each sprint as `frontend`, `backend`, or `fullstack` based on:
+- Task descriptions and keywords
+- Target file patterns (`.jsx`, `.tsx`, `.go`, `.py`, etc.)
+- PRD content analysis
+
+Different sprint types activate different personas with specialized expertise.
+
+### Frontend Development Enhancements
+
+For frontend sprints, the **frontend-developer** persona is supported by two specialist advisors:
+
+#### Design Specialist Support
+- Auto-detects design systems (Tailwind, Material-UI, Ant Design, etc.)
+- Provides design system guidance and best practices
+- Validates design system compliance
+- Ensures WCAG 2.1 AA accessibility compliance
+- Reviews responsive design implementation
+
+#### API Integration Specialist Support
+- Auto-discovers Swagger/OpenAPI documentation
+- Parses API contracts for relevant endpoints
+- Validates API endpoint usage (prevents invented APIs)
+- Ensures request/response schema compliance
+- Guides proper authentication implementation
+
+#### Frontend-Specific Validation
+Frontend sprint completion reports include:
+- Design system pattern compliance
+- API contract adherence (no invented endpoints)
+- Accessibility requirements (WCAG 2.1 AA)
+- Responsive design implementation
+- Design reference consultation
 
 ## How It Works
 
@@ -132,16 +189,64 @@ Delegated executors don't browse the codebase proactively. The orchestrator must
 
 ```
 .sprint/
-├── config.json                      # Project config and current state
-├── design-decisions.md              # Global decisions, contracts, and escalation policy
-├── iteration-plan.md                # Master plan with all sprints
-├── handoff-sprint-0.md              # Sprint 0 detailed instructions
-├── handoff-sprint-1.md              # Sprint 1 detailed instructions
+├── config.json                      # Project config, sprint type flags, and frontend context
+├── design-decisions.md              # Global decisions, contracts, and frontend context (if applicable)
+├── iteration-plan.md                # Master plan with all sprints and their types
+├── handoff-sprint-0.md              # Sprint 0 detailed instructions (persona-specific)
+├── handoff-sprint-1.md              # Sprint 1 detailed instructions (persona-specific)
 ├── clarification-sprint-1.md        # Blocking questions for a sprint when needed
 ├── sprint-1-clarifications.md       # User answers for sprint-specific blockers
-├── sprint-0-completion-report.md    # What Sprint 0 accomplished
-├── sprint-1-completion-report.md    # What Sprint 1 accomplished
+├── sprint-0-completion-report.md    # What Sprint 0 accomplished (persona-specific validation)
+├── sprint-1-completion-report.md    # What Sprint 1 accomplished (persona-specific validation)
 └── ...
+```
+
+**Persona Files**:
+```
+plugins/sprint-flow/personas/
+├── frontend-developer.md            # Frontend development persona
+├── backend-developer.md             # Backend development persona
+├── fullstack-developer.md           # Fullstack development persona
+├── design-specialist.md             # Design expert (frontend assistant)
+└── api-integration-specialist.md    # API integration expert (frontend assistant)
+```
+
+#### config.json Schema
+
+```json
+{
+  "project_name": "...",
+  "project_type": "fullstack",
+  "has_frontend_sprints": true,
+  "has_backend_sprints": true,
+  "frontend_context": {
+    "design_system": {
+      "framework": "tailwind",
+      "version": "3.x",
+      "style_guide_url": "https://...",
+      "component_library": "shadcn/ui",
+      "design_references": ["https://figma.com/..."]
+    },
+    "api_documentation": {
+      "type": "openapi",
+      "path": "docs/openapi.yaml",
+      "url": "https://api.example.com/docs",
+      "base_url": "https://api.example.com",
+      "auth_method": "bearer"
+    }
+  }
+}
+```
+
+#### iteration-plan.md Schema
+
+```markdown
+| Sprint | Name | Type | Objective | Priority | Dependencies | Status |
+|--------|------|------|-----------|----------|-------------|--------|
+| 0 | Setup | backend | Initialize project | CRITICAL | None | Pending |
+| 1 | User API | backend | User CRUD endpoints | HIGH | Sprint 0 | Pending |
+| 2 | Login UI | frontend | Login page component | HIGH | Sprint 1 | Pending |
+| 3 | Dashboard | fullstack | Dashboard with data | HIGH | Sprint 1,2 | Pending |
 ```
 
 ### Sprint Splitting Principles
@@ -152,6 +257,58 @@ Delegated executors don't browse the codebase proactively. The orchestrator must
 - Strictly ordered dependencies
 - Each sprint produces testable output
 - Each sprint includes unit tests for the code it produces
+- **Sprint type classification**: Each sprint is classified as `frontend`, `backend`, or `fullstack`
+- **Type-specific enhancements**: Frontend sprints get design and API context; backend sprints use standard workflow
+
+## Example Workflow
+
+### 1. Initialize with PRD
+
+```bash
+/sprint-init docs/prd.md
+```
+
+Sprint Flow will:
+- Analyze PRD and split into sprints
+- Classify each sprint type (frontend/backend/fullstack)
+- Detect design system (if frontend sprints exist)
+- Search for API documentation (if frontend sprints exist)
+- Ask for design references and API doc location
+- Generate `.sprint/config.json` with frontend context
+- Create iteration plan with sprint types
+- Generate type-specific handoffs
+
+### 2. Review the Plan
+
+```bash
+/sprint-status
+```
+
+Shows:
+- Sprint overview with types
+- Progress percentage
+- Current sprint
+- Available commands
+
+### 3. Execute Sprints
+
+```bash
+/sprint-run
+```
+
+For each sprint:
+- Reads sprint type from iteration plan
+- **Activates appropriate persona**:
+  - Backend sprint → backend-developer persona
+  - Frontend sprint → frontend-developer + design-specialist + api-integration-specialist
+  - Fullstack sprint → fullstack-developer + design-specialist + api-integration-specialist
+- **Loads persona-specific context**:
+  - Backend: Standard context only
+  - Frontend/Fullstack: Design system + API documentation + specialist guidance
+- Runs clarification gate if needed
+- Dispatches sub-agent with persona identity and specialized knowledge
+- Validates completion using persona-specific quality standards
+- Generates completion report with persona-specific validation checklists
 
 ## Requirements
 
