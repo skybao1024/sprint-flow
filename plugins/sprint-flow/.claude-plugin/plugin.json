@@ -1,7 +1,7 @@
 {
   "name": "sprint-flow",
   "description": "Iterative sprint development workflow powered by delegated executors. Split PRD into sprints, execute each with clean context, auto-generate handoffs and completion reports.",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "author": {
     "name": "skybao1024",
     "url": "https://github.com/skybao1024/sprint-flow"

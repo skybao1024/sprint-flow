@@ -57,18 +57,35 @@ Before dispatching, gather ALL necessary information:
    - **Backend sprints**: No assistant personas needed
    - **Fullstack sprints**: Activate `design-specialist` + `api-integration-specialist`
 
-4. **Load persona files** (use Glob to find them first, then Read):
-   - Use `Glob` with pattern `**/personas/*.md` to locate persona files
-   - **Frontend sprint**: Read the frontend-developer.md file found
-   - **Backend sprint**: Read the backend-developer.md file found
-   - **Fullstack sprint**: Read the fullstack-developer.md file found
-   - Extract persona identity, core competencies, workflow, quality standards, validation checklist
-   - If assistant personas needed (frontend/fullstack), also read:
-     - design-specialist.md
-     - api-integration-specialist.md
-   - Extract brief identity (1-2 sentences) and key guidance (3-5 points) from assistants
+4. **Locate plugin resources**:
+   - Use Bash to get plugin install path from installed_plugins.json:
+     ```bash
+     cat ~/.claude/plugins/installed_plugins.json | grep -A 3 '"sprint-flow@sprint-flow-marketplace"' | grep installPath | cut -d'"' -f4
+     ```
+   - Store result as `PLUGIN_PATH` (e.g., `/Users/xxx/.claude/plugins/cache/sprint-flow-marketplace/sprint-flow/0.3.1`)
+   - If command fails or returns empty, fall back to searching: `find ~/.claude/plugins -type d -name "sprint-flow" | grep -E "cache.*sprint-flow-marketplace" | head -1`
 
-5. **Load persona-specific context**:
+5. **Load persona files dynamically based on sprint type**:
+   
+   **For frontend sprint**:
+   - Read `{PLUGIN_PATH}/personas/frontend-developer.md`
+   - Read `{PLUGIN_PATH}/personas/design-specialist.md`
+   - Read `{PLUGIN_PATH}/personas/api-integration-specialist.md`
+   - Extract persona identity, core competencies, workflow, quality standards, validation checklist
+   - Extract brief identity (1-2 sentences) and key guidance (3-5 points) from assistant personas
+   
+   **For backend sprint**:
+   - Read `{PLUGIN_PATH}/personas/backend-developer.md`
+   - Extract persona identity, core competencies, workflow, quality standards, validation checklist
+   
+   **For fullstack sprint**:
+   - Read `{PLUGIN_PATH}/personas/fullstack-developer.md`
+   - Read `{PLUGIN_PATH}/personas/design-specialist.md`
+   - Read `{PLUGIN_PATH}/personas/api-integration-specialist.md`
+   - Extract persona identity, core competencies, workflow, quality standards, validation checklist
+   - Extract brief identity (1-2 sentences) and key guidance (3-5 points) from assistant personas
+
+6. **Load persona-specific context**:
 
    **For backend persona**:
    - Load standard context only
@@ -90,7 +107,7 @@ Before dispatching, gather ALL necessary information:
    - Load design-specialist guidance
    - Load api-integration-specialist guidance
 
-6. **Store activated persona and context** for use in implementation prompt construction
+7. **Store activated persona and context** for use in implementation prompt construction
 
 ### Step 2.2: Run the Sprint Clarification Gate
 
@@ -386,13 +403,15 @@ Study these files to understand coding patterns:
 3. Complete each task fully before moving to the next.
 4. After ALL tasks done, update `.sprint/iteration-plan.md`:
    - Change Sprint {N} status to "Completed", add date
-5. Create `.sprint/sprint-{N}-completion-report.md` with:
-   - All changes made (files created, modified, deleted)
-   - Any deviations from plan and why
-   - Issues encountered and resolutions
-   - Sprint contract compliance (did you produce the expected output?)
-   - Risks or concerns for next sprints
-   - Assumptions made for non-blocking ambiguities
+5. Create `.sprint/sprint-{N}-completion-report.md` using the appropriate template:
+   - Load template from `{PLUGIN_PATH}/templates/completion-report-{sprint_type}.md`
+   - Fill in all template sections with actual sprint results:
+     - All changes made (files created, modified, deleted)
+     - Any deviations from plan and why
+     - Issues encountered and resolutions
+     - Sprint contract compliance (did you produce the expected output?)
+     - Risks or concerns for next sprints
+     - Assumptions made for non-blocking ambiguities
 6. If `.sprint/handoff-sprint-{N+1}.md` exists, review and update it.
    If it doesn't exist and more sprints remain, create it.
 
