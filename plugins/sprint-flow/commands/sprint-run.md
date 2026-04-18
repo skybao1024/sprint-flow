@@ -58,9 +58,14 @@ Before dispatching, gather ALL necessary information:
    - **Fullstack sprints**: Activate `design-specialist` + `api-integration-specialist`
 
 4. **Load persona files**:
-   - Read primary persona file: `plugins/sprint-flow/personas/{persona-name}.md`
-   - Extract persona identity, workflow, quality standards, validation checklist
-   - If assistant personas needed, read their files as well
+   - **Frontend sprint**: Read `plugins/sprint-flow/personas/frontend-developer.md`
+   - **Backend sprint**: Read `plugins/sprint-flow/personas/backend-developer.md`
+   - **Fullstack sprint**: Read `plugins/sprint-flow/personas/fullstack-developer.md`
+   - Extract persona identity, core competencies, workflow, quality standards, validation checklist
+   - If assistant personas needed (frontend/fullstack), also read:
+     - `plugins/sprint-flow/personas/design-specialist.md`
+     - `plugins/sprint-flow/personas/api-integration-specialist.md`
+   - Extract brief identity (1-2 sentences) and key guidance (3-5 points) from assistants
 
 5. **Load persona-specific context**:
 
