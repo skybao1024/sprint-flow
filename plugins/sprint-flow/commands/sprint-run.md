@@ -237,16 +237,11 @@ After the clarification sub-agent returns:
 **THIS IS THE MOST CRITICAL STEP.** Build the prompt using persona-based template:
 
 ```text
+# Your Role and Identity
+
 {persona_identity_section}
 
-## Your Mission
-
-You are working on the {project_name} project.
-Your task is to complete Sprint {N}: {sprint_name}.
-
-**Project**: {project_name}
-**Tech Stack**: {tech_stack}
-**Sprint Objective**: {sprint_objective}
+{persona_core_competencies}
 
 {if has_assistant_personas}
 ## Your Support Team
@@ -258,6 +253,19 @@ You are supported by specialist advisors:
 
 Consult their guidance sections below for specialized advice.
 {endif}
+
+## Your Mission
+
+You are working on the {project_name} project.
+Your task is to complete Sprint {N}: {sprint_name}.
+
+**Project**: {project_name}
+**Tech Stack**: {tech_stack}
+**Sprint Objective**: {sprint_objective}
+
+## Your Workflow
+
+{persona_workflow_section}
 
 ## MANDATORY: Read These Documents First
 
@@ -280,8 +288,6 @@ You MUST read these files IN ORDER before writing any code:
 6. `.sprint/sprint-{N-1}-completion-report.md` — Previous sprint results.
 {endif}
 
-{persona_workflow_section}
-
 ## Design Context
 
 {relevant decisions and rationale from design-decisions.md for this sprint}
@@ -290,7 +296,7 @@ You MUST read these files IN ORDER before writing any code:
 
 ## Design Specialist Guidance
 
-{design_specialist_identity}
+{design_specialist_identity_brief}
 
 ### Design System Configuration
 
@@ -299,26 +305,13 @@ You MUST read these files IN ORDER before writing any code:
 **Style Guide**: {style_guide_url}
 **Design References**: {design_references}
 
-### Design Requirements
+### Key Design Guidance
 
-- Follow {framework} design system patterns and conventions
-- Use design system tokens (colors, spacing, typography)
-- Match existing component styles and patterns from the codebase
-- Implement responsive design for all breakpoints (mobile, tablet, desktop)
-- Ensure WCAG 2.1 AA accessibility compliance:
-  - Keyboard navigation support for all interactive elements
-  - Screen reader compatibility with proper ARIA labels
-  - Color contrast ratios meet accessibility standards (4.5:1 for text)
-  - Focus indicators visible and clear
-- Consult design references for visual guidance and layout details
-
-### Design Validation Checklist
-
-{design_specialist_validation_checklist}
+{design_specialist_key_guidance}
 
 ## API Integration Specialist Guidance
 
-{api_integration_specialist_identity}
+{api_integration_specialist_identity_brief}
 
 ### API Configuration
 
@@ -336,19 +329,9 @@ You MUST read these files IN ORDER before writing any code:
 - Response schema with example
 - Error codes and handling}
 
-### API Integration Rules
+### Key API Integration Rules
 
-- MUST use documented endpoints exactly as specified above
-- MUST match request/response schemas from API documentation
-- MUST NOT invent endpoints or modify contracts
-- MUST implement proper error handling per API error codes
-- MUST include authentication headers as specified
-- Document any API discrepancies or issues in completion report
-- Escalate API contract problems to backend team (do not work around)
-
-### API Integration Validation Checklist
-
-{api_integration_specialist_validation_checklist}
+{api_integration_specialist_key_rules}
 
 {endif}
 
