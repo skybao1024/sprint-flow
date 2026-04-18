@@ -57,14 +57,15 @@ Before dispatching, gather ALL necessary information:
    - **Backend sprints**: No assistant personas needed
    - **Fullstack sprints**: Activate `design-specialist` + `api-integration-specialist`
 
-4. **Load persona files**:
-   - **Frontend sprint**: Read `plugins/sprint-flow/personas/frontend-developer.md`
-   - **Backend sprint**: Read `plugins/sprint-flow/personas/backend-developer.md`
-   - **Fullstack sprint**: Read `plugins/sprint-flow/personas/fullstack-developer.md`
+4. **Load persona files** (use Glob to find them first, then Read):
+   - Use `Glob` with pattern `**/personas/*.md` to locate persona files
+   - **Frontend sprint**: Read the frontend-developer.md file found
+   - **Backend sprint**: Read the backend-developer.md file found
+   - **Fullstack sprint**: Read the fullstack-developer.md file found
    - Extract persona identity, core competencies, workflow, quality standards, validation checklist
    - If assistant personas needed (frontend/fullstack), also read:
-     - `plugins/sprint-flow/personas/design-specialist.md`
-     - `plugins/sprint-flow/personas/api-integration-specialist.md`
+     - design-specialist.md
+     - api-integration-specialist.md
    - Extract brief identity (1-2 sentences) and key guidance (3-5 points) from assistants
 
 5. **Load persona-specific context**:
@@ -462,6 +463,7 @@ After sub-agent returns:
 **Additional validation for frontend/fullstack sprints**:
 
 If sprint type is "frontend" or "fullstack", also verify:
+
 - Components follow design system patterns (check imports and styling)
 - API calls use documented endpoints (grep for API base URL usage)
 - No invented API endpoints (compare against API documentation)
