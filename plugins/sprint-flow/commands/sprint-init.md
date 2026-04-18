@@ -486,10 +486,13 @@ Before starting, read these documents:
 - [ ] All test scenarios above have passing tests
 
 ## After Completion
+
 1. Update `.sprint/iteration-plan.md` — Mark Sprint 0 as completed
 2. Create `.sprint/sprint-0-completion-report.md`
-3. Create `.sprint/handoff-sprint-1.md` if more sprints remain
-```
+
+Note: The orchestrator will automatically generate `.sprint/handoff-sprint-1.md` after validating Sprint 0 completion.
+
+```markdown
 
 ### 5. Sprint splitting principles
 

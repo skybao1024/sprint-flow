@@ -412,8 +412,6 @@ Study these files to understand coding patterns:
      - Sprint contract compliance (did you produce the expected output?)
      - Risks or concerns for next sprints
      - Assumptions made for non-blocking ambiguities
-6. If `.sprint/handoff-sprint-{N+1}.md` exists, review and update it.
-   If it doesn't exist and more sprints remain, create it.
 
 ## Required Test Scenarios
 
@@ -488,6 +486,155 @@ If sprint type is "frontend" or "fullstack", also verify:
 - No invented API endpoints (compare against API documentation)
 - Accessibility attributes present (check for ARIA labels, keyboard handlers)
 - Responsive design implemented (check for breakpoint handling)
+
+### Step 2.6.5: Generate Next Sprint Handoff
+
+If more sprints remain, generate the handoff document for Sprint N+1:
+
+**Check if more sprints remain**:
+
+- Read `.sprint/config.json`
+- Calculate: next_sprint = N + 1
+- If next_sprint >= total_sprints, skip this step
+
+**Load next sprint context**:
+
+1. Read `.sprint/iteration-plan.md` — Extract Sprint N+1 details:
+   - Sprint name, type (frontend/backend/fullstack), objective
+   - Complete task list with IDs, descriptions, target files, priorities
+   - Acceptance criteria
+   - PRD section references
+
+2. Read `.sprint/design-decisions.md` — Extract:
+   - Design decisions relevant to Sprint N+1
+   - Sprint contracts: Sprint N output → Sprint N+1 input
+   - Development standards and test requirements
+
+3. Read `.sprint/config.json` — Extract:
+   - prd_path, instruction_file_path
+   - tech_stack, project_type
+   - frontend_context (if Sprint N+1 type is frontend/fullstack)
+
+4. Read `.sprint/sprint-{N}-completion-report.md` — Note any deviations that affect Sprint N+1
+
+**Generate `.sprint/handoff-sprint-{N+1}.md`**:
+
+Use Write tool to create the handoff with this complete structure:
+
+```markdown
+# Sprint {N+1} Handoff: {Sprint Name}
+
+**Created**: {current date}
+**Status**: Ready to start
+**Objective**: {objective from iteration plan}
+
+## Required Reading
+
+Before starting, read these documents:
+1. **PRD**: `{prd_path}` — Focus on: {specific sections from iteration plan}
+2. **Instruction File**: `{instruction_file_path}` — Project coding standards and conventions
+3. **Iteration Plan**: `.sprint/iteration-plan.md`
+4. **Previous Sprint Report**: `.sprint/sprint-{N}-completion-report.md`
+
+## Task List
+
+{Copy the complete task table from iteration-plan.md for Sprint N+1}
+
+## Design Context
+
+{Extract and paste relevant design decisions from design-decisions.md that affect Sprint N+1}
+
+{if sprint_N+1_type == "frontend" or "fullstack"}
+## Design Context (Frontend Sprint)
+
+**Design System**: {frontend_context.design_system.framework} {version}
+**Component Library**: {frontend_context.design_system.component_library}
+**Style Guide**: {frontend_context.design_system.style_guide_url}
+**Design References**: {list design_references}
+
+### Design Requirements
+- Follow design system patterns and conventions from {framework}
+- Match existing component styles and patterns
+- Implement responsive design for all breakpoints
+- Ensure WCAG 2.1 AA accessibility compliance
+- Use design references for visual guidance
+
+## API Documentation (Frontend Sprint)
+
+**API Base URL**: {frontend_context.api_documentation.base_url}
+**Authentication**: {frontend_context.api_documentation.auth_method}
+**API Documentation**: {frontend_context.api_documentation.type} at {path or url}
+
+### Available Endpoints for This Sprint
+
+{Parse API documentation and extract endpoints relevant to Sprint N+1 tasks:
+- Read the API doc file from frontend_context.api_documentation.path or fetch from .url
+- Identify endpoints mentioned in Sprint N+1 task descriptions
+- For each relevant endpoint, document:
+  * HTTP method and path (e.g., GET /api/users)
+  * Description
+  * Authentication requirements
+  * Request parameters/body schema with types
+  * Response schema with example JSON
+  * Error codes and meanings
+- Use code blocks for schemas}
+
+### Frontend API Integration Rules
+- MUST use documented endpoints exactly as specified
+- MUST match request/response schemas from documentation
+- MUST NOT invent endpoints or modify contracts
+- Document any API discrepancies in completion report
+- Escalate API issues to backend team
+{endif}
+
+## Sprint Contracts
+
+- **Input**: {What Sprint N+1 receives from Sprint N — from design-decisions.md sprint contracts}
+- **Output**: {What Sprint N+1 must produce for Sprint N+2 — from design-decisions.md sprint contracts}
+
+## Implementation Guide
+
+### Existing Patterns to Follow
+{Use Glob to find 2-3 representative pattern files based on Sprint N+1 tasks:
+- List file paths with brief descriptions of patterns they demonstrate}
+
+### Key Constraints
+- {Extract constraints from PRD sections for Sprint N+1}
+- {Extract constraints from instruction file}
+- {Note deviations from Sprint N completion report that affect Sprint N+1}
+
+## Test Scenarios
+
+{Generate specific test scenarios based on:
+- Project type's development standards from design-decisions.md
+- Sprint N+1's tasks and acceptance criteria
+- Cover: happy path, edge cases, error cases
+- Be concrete and specific, not generic}
+
+| ID | Scenario | Type | Expected Behavior |
+|----|----------|------|-------------------|
+| S{N+1}-TS1 | {specific scenario} | happy path / edge case / error | {expected result} |
+| S{N+1}-TS2 | {specific scenario} | happy path / edge case / error | {expected result} |
+{Add more based on Sprint N+1 complexity}
+
+## Acceptance Criteria
+{Copy acceptance criteria from iteration-plan.md for Sprint N+1}
+- [ ] All test scenarios above have passing tests
+
+## After Completion
+1. Update `.sprint/iteration-plan.md` — Mark Sprint {N+1} as completed
+2. Create `.sprint/sprint-{N+1}-completion-report.md`
+3. Create `.sprint/handoff-sprint-{N+2}.md` if more sprints remain
+```
+
+**Validate the generated handoff**:
+
+- [ ] All tasks from iteration plan included (complete table)
+- [ ] Relevant design decisions and sprint contracts present
+- [ ] Frontend context with parsed API endpoints (if frontend/fullstack)
+- [ ] Specific test scenarios (not generic)
+- [ ] Pattern references from actual codebase files
+- [ ] All sections filled with actual content (no placeholders)
 
 ### Step 2.7: Handle Failures
 
