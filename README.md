@@ -68,10 +68,50 @@ Claude Code commands:
 
 | Command | Description |
 |---------|-------------|
-| `/sprint-init <prd>` | Analyze PRD, create `.sprint/` with iteration plan and handoffs |
-| `/sprint-run [N]` | Execute sprints via sub-agents, validate, loop |
+| `/sprint-init <prd>` | Analyze PRD, classify sprint types, create `.sprint/` with iteration plan and handoffs |
+| `/sprint-run [N]` | Execute sprints via sub-agents with type-specific context, validate, loop |
 | `/sprint-done [N]` | Manually complete current sprint, generate report |
 | `/sprint-status [N]` | Show progress dashboard |
+
+## Features
+
+### Sprint Type Classification
+
+Sprint Flow automatically classifies each sprint as `frontend`, `backend`, or `fullstack` based on:
+- Task descriptions and keywords
+- Target file patterns (`.jsx`, `.tsx`, `.go`, `.py`, etc.)
+- PRD content analysis
+
+Different sprint types receive different enhancement workflows:
+- **Frontend sprints**: Get design system context and API documentation
+- **Backend sprints**: Use standard workflow (unchanged)
+- **Fullstack sprints**: Get both frontend and backend contexts
+
+### Frontend Development Enhancements
+
+For projects with frontend sprints, Sprint Flow provides:
+
+#### Design System Integration
+- Auto-detects design systems (Tailwind, Material-UI, Ant Design, etc.)
+- Requests design references (Figma, style guides, mockups)
+- Injects design context into frontend sprint handoffs
+- Validates design system compliance in completion reports
+- Ensures WCAG 2.1 AA accessibility compliance
+
+#### API Documentation Integration
+- Auto-discovers Swagger/OpenAPI documentation
+- Parses API contracts for relevant endpoints
+- Injects API documentation into frontend sprint prompts
+- Validates that frontend uses documented endpoints (no invented APIs)
+- Ensures request/response schemas match backend contracts
+
+#### Frontend-Specific Validation
+Frontend sprint completion reports include:
+- Design system pattern compliance
+- API contract adherence (no invented endpoints)
+- Accessibility requirements (WCAG 2.1 AA)
+- Responsive design implementation
+- Design reference consultation
 
 ## How It Works
 
@@ -132,16 +172,54 @@ Delegated executors don't browse the codebase proactively. The orchestrator must
 
 ```
 .sprint/
-├── config.json                      # Project config and current state
-├── design-decisions.md              # Global decisions, contracts, and escalation policy
-├── iteration-plan.md                # Master plan with all sprints
-├── handoff-sprint-0.md              # Sprint 0 detailed instructions
-├── handoff-sprint-1.md              # Sprint 1 detailed instructions
+├── config.json                      # Project config, sprint type flags, and frontend context
+├── design-decisions.md              # Global decisions, contracts, and frontend context (if applicable)
+├── iteration-plan.md                # Master plan with all sprints and their types
+├── handoff-sprint-0.md              # Sprint 0 detailed instructions (type-specific)
+├── handoff-sprint-1.md              # Sprint 1 detailed instructions (type-specific)
 ├── clarification-sprint-1.md        # Blocking questions for a sprint when needed
 ├── sprint-1-clarifications.md       # User answers for sprint-specific blockers
-├── sprint-0-completion-report.md    # What Sprint 0 accomplished
-├── sprint-1-completion-report.md    # What Sprint 1 accomplished
+├── sprint-0-completion-report.md    # What Sprint 0 accomplished (type-specific validation)
+├── sprint-1-completion-report.md    # What Sprint 1 accomplished (type-specific validation)
 └── ...
+```
+
+#### config.json Schema
+
+```json
+{
+  "project_name": "...",
+  "project_type": "fullstack",
+  "has_frontend_sprints": true,
+  "has_backend_sprints": true,
+  "frontend_context": {
+    "design_system": {
+      "framework": "tailwind",
+      "version": "3.x",
+      "style_guide_url": "https://...",
+      "component_library": "shadcn/ui",
+      "design_references": ["https://figma.com/..."]
+    },
+    "api_documentation": {
+      "type": "openapi",
+      "path": "docs/openapi.yaml",
+      "url": "https://api.example.com/docs",
+      "base_url": "https://api.example.com",
+      "auth_method": "bearer"
+    }
+  }
+}
+```
+
+#### iteration-plan.md Schema
+
+```markdown
+| Sprint | Name | Type | Objective | Priority | Dependencies | Status |
+|--------|------|------|-----------|----------|-------------|--------|
+| 0 | Setup | backend | Initialize project | CRITICAL | None | Pending |
+| 1 | User API | backend | User CRUD endpoints | HIGH | Sprint 0 | Pending |
+| 2 | Login UI | frontend | Login page component | HIGH | Sprint 1 | Pending |
+| 3 | Dashboard | fullstack | Dashboard with data | HIGH | Sprint 1,2 | Pending |
 ```
 
 ### Sprint Splitting Principles
@@ -152,6 +230,57 @@ Delegated executors don't browse the codebase proactively. The orchestrator must
 - Strictly ordered dependencies
 - Each sprint produces testable output
 - Each sprint includes unit tests for the code it produces
+- **Sprint type classification**: Each sprint is classified as `frontend`, `backend`, or `fullstack`
+- **Type-specific enhancements**: Frontend sprints get design and API context; backend sprints use standard workflow
+
+## Example Workflow
+
+### 1. Initialize with PRD
+
+```bash
+/sprint-init docs/prd.md
+```
+
+Sprint Flow will:
+- Analyze PRD and split into sprints
+- Classify each sprint type (frontend/backend/fullstack)
+- Detect design system (if frontend sprints exist)
+- Search for API documentation (if frontend sprints exist)
+- Ask for design references and API doc location
+- Generate `.sprint/config.json` with frontend context
+- Create iteration plan with sprint types
+- Generate type-specific handoffs
+
+### 2. Review the Plan
+
+```bash
+/sprint-status
+```
+
+Shows:
+- Sprint overview with types
+- Progress percentage
+- Current sprint
+- Available commands
+
+### 3. Execute Sprints
+
+```bash
+/sprint-run
+```
+
+For each sprint:
+- Loads sprint type from iteration plan
+- **Backend sprints**: Standard workflow
+- **Frontend/Fullstack sprints**: 
+  - Loads design system configuration
+  - Parses API documentation for relevant endpoints
+  - Injects design and API context into prompt
+  - Validates design compliance and API usage
+- Runs clarification gate if needed
+- Dispatches sub-agent with type-appropriate context
+- Validates completion with type-specific checklist
+- Generates completion report with type-specific validation
 
 ## Requirements
 

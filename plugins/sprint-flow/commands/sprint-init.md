@@ -30,6 +30,40 @@ Read the entire PRD document. Identify:
 - Tech stack and constraints
 - Any existing project instruction file conventions. Host selection is explicit: use `CLAUDE.md` for Claude Code and `AGENTS.md` for Codex.
 
+### 2.5. Split PRD into sprints and classify sprint types
+
+After identifying major modules, split the PRD into sprints and classify each sprint's type:
+
+**Sprint Type Classification Criteria**:
+
+- **Frontend**: Sprint focuses on UI components, pages, styling, user interactions
+  - Keywords: component, UI, page, view, form, button, modal, layout, style, responsive, design
+  - File patterns: `*.jsx`, `*.tsx`, `*.vue`, `*.svelte`, `*.css`, `*.scss`, `components/*`, `pages/*`, `views/*`
+  - PRD indicators: user interface, frontend, UI/UX, design, mockup, wireframe
+
+- **Backend**: Sprint focuses on APIs, services, database, business logic
+  - Keywords: API, endpoint, database, service, controller, model, schema, migration, auth, server
+  - File patterns: `*.go`, `*.py`, `*.java`, `controllers/*`, `models/*`, `services/*`, `api/*`
+  - PRD indicators: backend, API, database, server, service, endpoint
+
+- **Fullstack**: Sprint involves both frontend and backend work
+  - Has significant indicators from both frontend and backend categories
+
+**Classification Process**:
+1. For each planned sprint, analyze task descriptions and target files
+2. Count frontend vs backend indicators (keywords, file patterns, PRD content)
+3. Assign type based on dominant indicators:
+   - If frontend_score > backend_score * 2: type = "frontend"
+   - If backend_score > frontend_score * 2: type = "backend"
+   - If scores are similar: type = "fullstack"
+   - Default: type = "backend"
+4. Store sprint type in iteration plan for later use
+
+**Track Frontend Sprint Existence**:
+- Set `has_frontend_sprints = true` if any sprint is classified as "frontend" or "fullstack"
+- Set `has_backend_sprints = true` if any sprint is classified as "backend" or "fullstack"
+- These flags control whether to execute frontend context discovery in Step 3.5
+
 ### 3. Design Analysis (Think Once, Execute Many)
 
 Before splitting into sprints, perform deep analysis to resolve **project-level ambiguities** and establish design context. This analysis is done **once** and produces `.sprint/design-decisions.md`, which all sub-agents will consume.
@@ -149,6 +183,112 @@ For non-blocking ambiguities:
 - <constraint from tech stack>
 ```
 
+### 3.5. Conditional Frontend Context Discovery
+
+**ONLY execute this step if `has_frontend_sprints = true`** (i.e., at least one sprint is classified as "frontend" or "fullstack"). If the project has no frontend sprints, skip to Step 4.
+
+#### 3.5a. Design System Detection
+
+Search for design system indicators in the project:
+
+1. **Check package.json** for UI framework dependencies:
+   - Tailwind CSS: `tailwindcss`
+   - Material-UI: `@mui/material`, `@material-ui/core`
+   - Ant Design: `antd`
+   - Chakra UI: `@chakra-ui/react`
+   - shadcn/ui: Check for `components.json`
+   - Bootstrap: `bootstrap`, `react-bootstrap`
+
+2. **Check for config files**:
+   - `tailwind.config.js`, `tailwind.config.ts`
+   - `theme.js`, `theme.ts`
+   - `components.json` (shadcn/ui)
+
+3. **Grep for design system imports** in existing component files (if any):
+   - Search for common import patterns in `*.jsx`, `*.tsx`, `*.vue` files
+
+4. **Ask user for confirmation and additional context**:
+   - Confirm detected design system
+   - Request design reference URLs (Figma, style guide, mockups)
+   - Ask for component library preferences
+
+#### 3.5b. API Documentation Discovery
+
+Search for API documentation in the project:
+
+1. **Search for Swagger/OpenAPI files**:
+   - Common paths: `swagger.json`, `openapi.yaml`, `openapi.json`, `api-docs.json`
+   - Common directories: `docs/`, `api/`, `spec/`
+
+2. **Check README and config files** for API documentation URLs
+
+3. **Ask user for API documentation details**:
+   - Confirm API documentation location (file path or URL)
+   - Request API base URL for development environment
+   - Ask about authentication method (bearer token, API key, OAuth2, etc.)
+
+#### 3.5c. Store Frontend Context in config.json
+
+Add `frontend_context` object to `.sprint/config.json` with discovered information:
+
+```json
+"frontend_context": {
+  "design_system": {
+    "framework": "<tailwind|material-ui|ant-design|chakra-ui|bootstrap|custom|none>",
+    "version": "<version from package.json>",
+    "style_guide_url": "<user-provided URL>",
+    "component_library": "<shadcn/ui|custom|none>",
+    "design_references": ["<figma_url>", "<mockup_url>"]
+  },
+  "api_documentation": {
+    "type": "<swagger|openapi|custom|none>",
+    "path": "<relative path to API doc file>",
+    "url": "<API documentation URL>",
+    "base_url": "<API base URL for development>",
+    "auth_method": "<bearer|api-key|oauth2|none>"
+  }
+}
+```
+
+#### 3.5d. Add Frontend Context to design-decisions.md
+
+If frontend sprints exist, append this section to `.sprint/design-decisions.md`:
+
+```markdown
+## Frontend Development Context
+
+### Design System
+**Framework**: <framework>
+**Version**: <version>
+**Component Library**: <library>
+**Style Guide**: <url>
+
+### Design Principles
+- Follow design system patterns and conventions
+- Maintain consistent spacing, typography, and color usage
+- Ensure responsive design across breakpoints
+- Prioritize accessibility (WCAG 2.1 AA minimum)
+
+### Accessibility Requirements
+- WCAG 2.1 AA compliance
+- Keyboard navigation support for all interactive elements
+- Screen reader compatibility with proper ARIA labels
+- Color contrast ratios meet accessibility standards
+- Focus indicators visible and clear
+
+### API Integration
+**API Documentation**: <type> at <path or url>
+**Base URL**: <base_url>
+**Authentication**: <auth_method>
+
+### API Contract Rules (Frontend)
+- All API endpoints must match documented contracts exactly
+- Request and response schemas must be validated against documentation
+- No invented endpoints or modified contracts allowed
+- API changes or discrepancies must be escalated to backend team
+- Document all API integration assumptions in completion reports
+```
+
 ### 4. Create the `.sprint/` directory structure
 
 Create the following files in the project root:
@@ -164,6 +304,8 @@ Create the following files in the project root:
   "current_sprint": 0,
   "status": "initialized",
   "created_at": "<ISO date>",
+  "has_frontend_sprints": <true|false>,
+  "has_backend_sprints": <true|false>,
   "runtime": {
     "host": "<claude-code|codex|other>",
     "instruction_file_path": "<host-specific path: Claude Code uses CLAUDE.md, Codex uses AGENTS.md>",
@@ -176,9 +318,27 @@ Create the following files in the project root:
     "test_command": "<detected test command>",
     "build_command": "<detected build command>",
     "key_patterns": ["<important patterns from the selected host instruction file or codebase>"]
+  },
+  "frontend_context": {
+    "design_system": {
+      "framework": "<tailwind|material-ui|ant-design|chakra-ui|bootstrap|custom|none>",
+      "version": "<version>",
+      "style_guide_url": "<url>",
+      "component_library": "<library>",
+      "design_references": ["<url1>", "<url2>"]
+    },
+    "api_documentation": {
+      "type": "<swagger|openapi|custom|none>",
+      "path": "<path>",
+      "url": "<url>",
+      "base_url": "<base_url>",
+      "auth_method": "<bearer|api-key|oauth2|none>"
+    }
   }
 }
 ```
+
+**Note**: The `frontend_context` field should only be included if `has_frontend_sprints = true`. If the project has no frontend sprints, omit this field entirely.
 
 The selected `runtime.instruction_file_path` must always match the active host:
 
@@ -198,15 +358,16 @@ Do not write another host's instruction file into this field.
 
 ## Sprint Overview
 
-| Sprint | Name | Objective | Priority | Dependencies | Status |
-|--------|------|-----------|----------|-------------|--------|
-| 0 | <name> | <objective> | CRITICAL/HIGH/MEDIUM | None | Pending |
-| 1 | <name> | <objective> | ... | Sprint 0 | Pending |
+| Sprint | Name | Type | Objective | Priority | Dependencies | Status |
+|--------|------|------|-----------|----------|-------------|--------|
+| 0 | <name> | <frontend\|backend\|fullstack> | <objective> | CRITICAL/HIGH/MEDIUM | None | Pending |
+| 1 | <name> | <frontend\|backend\|fullstack> | <objective> | ... | Sprint 0 | Pending |
 
 ## Sprint Details
 
 ### Sprint 0: <Name>
 
+**Type**: <frontend\|backend\|fullstack>
 **Objective**: <one-line objective>
 **Priority**: <CRITICAL/HIGH/MEDIUM>
 **Dependencies**: None
@@ -248,6 +409,55 @@ Before starting, read these documents:
 ## Design Context
 
 {Relevant decisions from `.sprint/design-decisions.md` for this sprint — include design decisions, rationale, and any resolved questions that affect this sprint's implementation.}
+
+{if sprint_type == "frontend" or sprint_type == "fullstack"}
+## Design Context (Frontend Sprint)
+
+**Design System**: {framework} {version}
+**Component Library**: {library}
+**Style Guide**: {url}
+**Design References**: {figma/mockup links}
+
+### Design Requirements
+- Follow design system patterns and conventions from {framework}
+- Match existing component styles and patterns
+- Implement responsive design for all breakpoints
+- Ensure WCAG 2.1 AA accessibility compliance
+- Use design references for visual guidance
+
+## API Documentation (Frontend Sprint)
+
+**API Base URL**: {base_url}
+**Authentication**: {auth_method}
+**API Documentation**: {type} at {path or url}
+
+### Available Endpoints for This Sprint
+
+{List relevant API endpoints with request/response schemas extracted from API documentation}
+
+#### Example Format:
+**GET /api/users**
+- **Description**: Retrieve user list
+- **Authentication**: Bearer token required
+- **Request Parameters**: 
+  - `page` (number, optional): Page number
+  - `limit` (number, optional): Items per page
+- **Response Schema**:
+  ```json
+  {
+    "data": [{"id": 1, "name": "string", "email": "string"}],
+    "total": 100,
+    "page": 1
+  }
+  ```
+
+### Frontend API Integration Rules
+- MUST use documented endpoints exactly as specified
+- MUST match request/response schemas from documentation
+- MUST NOT invent endpoints or modify contracts
+- Document any API discrepancies in completion report
+- Escalate API issues to backend team
+{endif}
 
 ## Sprint Contracts
 

@@ -39,6 +39,37 @@ Before dispatching, gather ALL necessary information:
    - Use Glob/Grep to find example files referenced in the handoff
    - Identify 1-2 representative files as pattern references
 
+### Step 2.1.5: Detect Sprint Type and Load Conditional Context
+
+**Read sprint type from iteration-plan.md** and load additional context based on sprint type:
+
+1. **Extract sprint type** from `.sprint/iteration-plan.md` for Sprint {N}
+   - Look for the "Type" field in the sprint details section
+   - Possible values: `frontend`, `backend`, `fullstack`
+
+2. **Branch based on sprint type**:
+
+   **If sprint type is "backend"**:
+   - Skip frontend context loading
+   - Proceed with standard context only
+
+   **If sprint type is "frontend" or "fullstack"**:
+   - Read `.sprint/config.json` and extract `frontend_context` object
+   - Load design system configuration:
+     - Framework, version, component library
+     - Style guide URL and design references
+   - Load API documentation configuration:
+     - API doc type, path/URL, base URL, auth method
+   - Parse API documentation for relevant endpoints:
+     - If API doc is a file, read and parse it
+     - If API doc is a URL, fetch and parse it
+     - Extract endpoints mentioned in sprint task list
+     - Format each endpoint with request/response schemas
+     - Include authentication requirements
+   - Prepare frontend-specific validation checklist
+
+3. **Store loaded context** for use in implementation prompt construction
+
 ### Step 2.2: Run the Sprint Clarification Gate
 
 Before dispatching the implementation sub-agent, run a **clarification-only sub-agent** to detect blocking ambiguities for this sprint.
@@ -224,6 +255,60 @@ You MUST read these files IN ORDER before writing any code:
 
 {relevant decisions and rationale from design-decisions.md for this sprint}
 
+{if sprint_type == "frontend" or sprint_type == "fullstack"}
+## Design Context (Frontend Sprint)
+
+**Design System**: {framework} {version}
+**Component Library**: {component_library}
+**Style Guide**: {style_guide_url}
+**Design References**: {design_references}
+
+### Design Requirements
+- Follow {framework} design system patterns and conventions
+- Match existing component styles and patterns from the codebase
+- Implement responsive design for all breakpoints (mobile, tablet, desktop)
+- Ensure WCAG 2.1 AA accessibility compliance:
+  - Keyboard navigation support for all interactive elements
+  - Screen reader compatibility with proper ARIA labels
+  - Color contrast ratios meet accessibility standards
+  - Focus indicators visible and clear
+- Consult design references for visual guidance and layout details
+
+## API Documentation (Frontend Integration)
+
+**API Base URL**: {base_url}
+**Authentication**: {auth_method}
+**API Documentation**: {api_doc_type} at {api_doc_path_or_url}
+
+### Available Endpoints for This Sprint
+
+{Parsed API contracts for endpoints relevant to this sprint's tasks. Include:
+- Endpoint path and HTTP method
+- Description
+- Authentication requirements
+- Request parameters/body schema
+- Response schema with example
+- Error codes and handling}
+
+### Frontend API Integration Rules
+- MUST use documented endpoints exactly as specified above
+- MUST match request/response schemas from API documentation
+- MUST NOT invent endpoints or modify contracts
+- MUST implement proper error handling per API error codes
+- MUST include authentication headers as specified
+- Document any API discrepancies or issues in completion report
+- Escalate API contract problems to backend team (do not work around)
+{endif}
+
+{if sprint_type == "backend"}
+## Backend Requirements
+- Follow existing API patterns and conventions from codebase
+- Implement comprehensive unit tests for all business logic
+- Document API contracts clearly (endpoints, schemas, error codes)
+- Ensure proper error handling and validation
+- Follow security best practices (input validation, auth, etc.)
+{endif}
+
 ## Sprint Contracts
 
 - **Input from previous sprint**: {what this sprint consumes — could be components, modules, data structures, schemas, config, CLI commands, etc.}
@@ -287,6 +372,20 @@ Before creating your completion report, verify:
 - [ ] No TODO/FIXME comments left in code
 - [ ] Code follows patterns from pattern reference files
 - [ ] Clarification answers were followed if provided
+{if sprint_type == "frontend" or sprint_type == "fullstack"}
+- [ ] Components match design system patterns
+- [ ] All API calls use documented endpoints (no invented APIs)
+- [ ] Request/response schemas match API documentation
+- [ ] Accessibility requirements met (WCAG 2.1 AA)
+- [ ] Responsive design implemented for all breakpoints
+- [ ] Design references consulted and followed
+{endif}
+{if sprint_type == "backend"}
+- [ ] API contracts documented clearly
+- [ ] Unit tests cover all business logic paths
+- [ ] Error handling implemented properly
+- [ ] Security best practices followed
+{endif}
 
 ## Do NOT
 - Guess requirements — check the PRD, design decisions, and clarification answers
@@ -313,6 +412,15 @@ After sub-agent returns:
 5. Check handoff for Sprint N+1 exists (if more remain)
 6. Spot-check: Glob for files in completion report, read 1-2 key files
 7. If sprint contracts are broken, update the next sprint's handoff to note the deviation
+
+**Additional validation for frontend/fullstack sprints**:
+
+If sprint type is "frontend" or "fullstack", also verify:
+- Components follow design system patterns (check imports and styling)
+- API calls use documented endpoints (grep for API base URL usage)
+- No invented API endpoints (compare against API documentation)
+- Accessibility attributes present (check for ARIA labels, keyboard handlers)
+- Responsive design implemented (check for breakpoint handling)
 
 ### Step 2.7: Handle Failures
 
