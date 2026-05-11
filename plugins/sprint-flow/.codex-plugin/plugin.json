@@ -1,0 +1,44 @@
+{
+  "name": "sprint-flow",
+  "version": "0.3.4",
+  "description": "Iterative sprint development workflow for Codex and Claude Code. Split PRDs into sprints, execute each sprint with clean-context handoffs, and generate completion reports.",
+  "author": {
+    "name": "skybao1024",
+    "url": "https://github.com/skybao1024/sprint-flow"
+  },
+  "homepage": "https://github.com/skybao1024/sprint-flow",
+  "repository": "https://github.com/skybao1024/sprint-flow",
+  "license": "MIT",
+  "keywords": [
+    "sprint",
+    "workflow",
+    "prd",
+    "iterative",
+    "sub-agent"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Sprint Flow",
+    "shortDescription": "Split PRDs into executable sprints with handoffs and reports",
+    "longDescription": "Use Sprint Flow to initialize a sprint plan from a PRD, run sprints sequentially, review progress, and complete sprint handoffs using shared .sprint workflow artifacts.",
+    "developerName": "skybao1024",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/skybao1024/sprint-flow",
+    "privacyPolicyURL": "https://github.com/skybao1024/sprint-flow",
+    "termsOfServiceURL": "https://github.com/skybao1024/sprint-flow",
+    "defaultPrompt": [
+      "Initialize Sprint Flow from my PRD.",
+      "Show my current Sprint Flow status.",
+      "Run the next Sprint Flow sprint."
+    ],
+    "brandColor": "#2563EB",
+    "composerIcon": "./assets/sprint-flow.svg",
+    "logo": "./assets/sprint-flow.svg",
+    "screenshots": []
+  }
+}

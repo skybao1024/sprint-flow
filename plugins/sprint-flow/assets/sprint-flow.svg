@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Sprint Flow">
+  <rect width="128" height="128" rx="28" fill="#2563EB"/>
+  <path d="M29 38h42c14 0 25 11 25 25s-11 25-25 25H51" fill="none" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round"/>
+  <path d="M55 63H26m0 0 15-15M26 63l15 15" fill="none" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="73" cy="63" r="9" fill="#FFFFFF"/>
+</svg>

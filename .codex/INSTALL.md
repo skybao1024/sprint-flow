@@ -1,51 +1,72 @@
 # Codex Installation
 
-Sprint Flow keeps a shared `.sprint/` workflow format across hosts, but Codex installation/discovery stays separate from the Claude Code plugin wrapper.
+Sprint Flow keeps a shared `.sprint/` workflow format across hosts. Codex support now uses the native Codex plugin package inside `plugins/sprint-flow`.
 
 ## What This Repository Ships
 
-The Codex-distributed artifact in this repository is the Skill at:
+The Codex-distributed artifacts in this repository are:
 
 ```text
-.codex/skills/sprint-flow
+.agents/plugins/marketplace.json
+plugins/sprint-flow/.codex-plugin/plugin.json
+plugins/sprint-flow/skills/sprint-flow/SKILL.md
 ```
 
-It contains:
+The Codex Skill stays thin. It routes user intent to the canonical workflow definitions at:
 
-- `SKILL.md` — the Codex skill entrypoint
-- `commands/*.md` — thin Codex wrappers around the canonical workflow docs in `plugins/sprint-flow/commands/*.md`
-
-This is the open-source distribution unit for Codex users.
+```text
+plugins/sprint-flow/commands/*.md
+```
 
 ## User Installation Model
 
-Sprint Flow is published for Codex as a **Skill**.
+Sprint Flow is published for Codex as a **Plugin** with a Skill entrypoint.
 
-To install it on any machine:
-
-1. Obtain this repository.
-2. Install or place `.codex/skills/sprint-flow` into a Codex skills discovery path supported by your Codex installation.
-3. Restart Codex so it re-discovers the skill metadata.
-
-Use the Codex skills path documented by your Codex version as the source of truth for where the `sprint-flow` skill folder should live.
-
-## Local Setup Example
-
-If you are developing or testing locally, one practical setup is to link the repository's shipped skill folder into your local Codex skills path.
-
-Example:
+GitHub installation:
 
 ```bash
-ln -s "$(pwd)/.codex/skills/sprint-flow" "$HOME/.codex/skills/sprint-flow"
+codex plugin marketplace add skybao1024/sprint-flow
 ```
 
-This is a local installation example for development/testing, not the definition of the public distribution format.
+This installs the marketplace directly from GitHub. End users do not need to clone the repository first once the Codex plugin files have been committed and pushed.
+
+For Codex CLI versions that do not provide a separate plugin install command, enable the plugin in `~/.codex/config.toml`:
+
+```toml
+[plugins."sprint-flow@sprint-flow-marketplace"]
+enabled = true
+```
+
+Restart Codex so it re-discovers the plugin metadata.
+
+## Local Development Install
+
+Before publishing, install from a local checkout:
+
+```bash
+codex plugin marketplace add /path/to/sprint-flow
+```
+
+When run from the repository root, this can also be:
+
+```bash
+codex plugin marketplace add .
+```
+
+## Legacy Skill Path
+
+The old `.codex/skills/sprint-flow` layout existed before Codex had native plugin support. Do not duplicate command wrappers there. If you still have a local symlink such as `~/.codex/skills/sprint-flow`, update it to point at:
+
+```text
+plugins/sprint-flow/skills/sprint-flow
+```
 
 ## Important Compatibility Notes
 
 - Claude Code remains the canonical plugin distribution path via `.claude-plugin/`.
-- Codex support is implemented as a separate skill wrapper under `.codex/skills/sprint-flow`.
+- Codex support is implemented through `.codex-plugin/plugin.json` plus `skills/sprint-flow/SKILL.md`.
 - Both hosts reuse the same `.sprint/` artifacts and workflow semantics.
+- The canonical command definitions stay in `plugins/sprint-flow/commands/`.
 - If Codex does not provide a Claude-equivalent delegation or interactive-question primitive, the Codex wrapper should fall back to:
   - single-sprint execution in the main session
   - clarification files plus a paused question round for the user
