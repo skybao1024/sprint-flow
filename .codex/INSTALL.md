@@ -39,6 +39,17 @@ enabled = true
 
 Restart Codex so it re-discovers the plugin metadata.
 
+Codex discovers Sprint Flow as a Skill. Trigger it with the `$sprint-flow` mention:
+
+```text
+$sprint-flow initialize docs/prd.md
+$sprint-flow show status
+$sprint-flow run the next sprint
+$sprint-flow complete the current sprint
+```
+
+In the Codex composer, type `$s` and select `sprint-flow (sprint-flow) [Skill]`. The un-namespaced Claude Code commands such as `/sprint-init` are not valid Codex commands. In the tested Codex CLI version, third-party plugin commands are not exposed as Sprint Flow slash commands in the TUI, even though the plugin Skill is loaded.
+
 ## Local Development Install
 
 Before publishing, install from a local checkout:

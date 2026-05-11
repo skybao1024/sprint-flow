@@ -4,7 +4,7 @@ argument-hint: <prd-file-path>
 allowed-tools: [Read, Write, Edit, Glob, Grep, Bash, Agent, AskUserQuestion]
 ---
 
-# /sprint-init — Initialize Sprint Workflow
+# Sprint Init — Initialize Sprint Workflow
 
 You are setting up an iterative sprint development workflow for this project. This workflow enables AI-driven development where work is split into sprints, each executed by a sub-agent with clean context.
 
@@ -70,8 +70,8 @@ Before splitting into sprints, perform deep analysis to resolve **project-level 
 
 **Important boundary**:
 
-- `/sprint-init` resolves **project-level ambiguity** — product scope, tech stack, architecture direction, testing standards, deployment assumptions, and sprint contract design.
-- `/sprint-run` resolves **sprint-level ambiguity** through a clarification gate before execution when a specific sprint still has blocking feature-level questions.
+- Sprint init resolves **project-level ambiguity** — product scope, tech stack, architecture direction, testing standards, deployment assumptions, and sprint contract design.
+- Sprint run resolves **sprint-level ambiguity** through a clarification gate before execution when a specific sprint still has blocking feature-level questions.
 - Do NOT try to fully resolve every feature detail during init. The goal is to make sprint execution well-scoped, not to replace per-sprint detailed design review.
 
 #### 3a. Host Instruction File Selection
@@ -512,8 +512,8 @@ After creating all files, output:
 
 - Total sprints planned
 - Brief description of each sprint
-- Note that project-level ambiguities were resolved here, while sprint-level blockers will be handled by `/sprint-flow:sprint-run` through the clarification gate if needed
-- Command to start: "Run `/sprint-flow:sprint-run` to begin executing sprints, or `/sprint-flow:sprint-status` to review the plan"
+- Note that project-level ambiguities were resolved here, while sprint-level blockers will be handled by sprint run through the clarification gate if needed
+- Command to start: tell the user to run sprint status to review the plan or sprint run to begin executing sprints, using the command or Skill trigger format for the current host
 - If the current host uses different command discovery or install steps, follow that host's wrapper documentation while reusing the same `.sprint/` workflow artifacts
 
 ## Important

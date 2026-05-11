@@ -83,14 +83,32 @@ Claude Code commands:
 /sprint-run 3
 ```
 
+Codex uses the installed Skill through the `$sprint-flow` mention:
+
+```bash
+# 1. Initialize: analyze PRD and create sprint plan
+$sprint-flow initialize docs/my-prd.md
+
+# 2. Review the plan
+$sprint-flow show status
+
+# 3. Execute sprints
+$sprint-flow run the next sprint
+
+# Or execute a specific sprint
+$sprint-flow run sprint 3
+```
+
+In the Codex composer, type `$s` and select `sprint-flow (sprint-flow) [Skill]`.
+
 ## Commands
 
-| Command | Description |
-|---------|-------------|
-| `/sprint-init <prd>` | Analyze PRD, classify sprint types, create `.sprint/` with iteration plan and handoffs |
-| `/sprint-run [N]` | Execute sprints via sub-agents with type-specific context, validate, loop |
-| `/sprint-done [N]` | Manually complete current sprint, generate report |
-| `/sprint-status [N]` | Show progress dashboard |
+| Claude Code Command | Codex Skill Trigger | Description |
+|---------------------|---------------------|-------------|
+| `/sprint-init <prd>` | `$sprint-flow initialize <prd>` | Analyze PRD, classify sprint types, create `.sprint/` with iteration plan and handoffs |
+| `/sprint-run [N]` | `$sprint-flow run [N]` | Execute sprints via sub-agents with type-specific context, validate, loop |
+| `/sprint-done [N]` | `$sprint-flow complete [N]` | Manually complete current sprint, generate report |
+| `/sprint-status [N]` | `$sprint-flow show status [N]` | Show progress dashboard |
 
 ## Features
 
@@ -172,7 +190,7 @@ Main Agent (Orchestrator)           Delegated Executor
 
 ### Design Decisions: Think Once, Execute Many
 
-During `/sprint-init`, Sprint Flow performs project-level analysis and generates `.sprint/design-decisions.md`.
+During sprint initialization, Sprint Flow performs project-level analysis and generates `.sprint/design-decisions.md`.
 
 This file captures:
 - project type and testing standards
@@ -185,7 +203,7 @@ Delegated executors consume these decisions during sprint execution so they inhe
 
 ### Clarification Gate
 
-Before executing a sprint, `/sprint-run` can run a clarification gate to detect blocking ambiguities for that specific sprint.
+Before executing a sprint, Sprint Flow can run a clarification gate to detect blocking ambiguities for that specific sprint.
 
 The clarification flow works like this:
 - identify only **blocking** ambiguities for the current sprint
@@ -284,7 +302,7 @@ plugins/sprint-flow/personas/
 ### 1. Initialize with PRD
 
 ```bash
-/sprint-init docs/prd.md
+$sprint-flow initialize docs/prd.md
 ```
 
 Sprint Flow will:
@@ -300,7 +318,7 @@ Sprint Flow will:
 ### 2. Review the Plan
 
 ```bash
-/sprint-status
+$sprint-flow show status
 ```
 
 Shows:
@@ -312,7 +330,7 @@ Shows:
 ### 3. Execute Sprints
 
 ```bash
-/sprint-run
+$sprint-flow run the next sprint
 ```
 
 For each sprint:

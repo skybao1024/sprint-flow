@@ -4,15 +4,15 @@ argument-hint: "[sprint-number]"
 allowed-tools: [Read, Write, Edit, Glob, Grep, Bash, Agent, AskUserQuestion]
 ---
 
-# /sprint-run — Sprint Execution Orchestrator
+# Sprint Run — Sprint Execution Orchestrator
 
 You are the **orchestrator** of an iterative sprint development workflow. Your job is to dispatch sub-agents to execute each sprint, validate their work, and coordinate overall progress.
 
-**Arguments**: $ARGUMENTS (optional: sprint number to start from, e.g., `/sprint-run 3`)
+**Arguments**: $ARGUMENTS (optional: sprint number to start from, e.g., `3`)
 
 ## Phase 1: Load Project Context
 
-1. Read `.sprint/config.json` — if missing, tell user to run `/sprint-init` first
+1. Read `.sprint/config.json` — if missing, tell user to run sprint init first
 2. Read `.sprint/iteration-plan.md` for the full sprint plan
 3. Determine which sprint to execute next:
    - If argument provided, start from that sprint number

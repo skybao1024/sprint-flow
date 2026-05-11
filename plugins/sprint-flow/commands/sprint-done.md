@@ -4,7 +4,7 @@ argument-hint: "[sprint-number]"
 allowed-tools: [Read, Write, Edit, Glob, Grep, Bash]
 ---
 
-# /sprint-done — Complete Current Sprint
+# Sprint Done — Complete Current Sprint
 
 Finalize the current sprint and prepare handoff for the next one.
 
